@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace MesCopilot.UnitTests.Architecture;
 
@@ -37,6 +38,40 @@ public class DeploymentConfigurationTests
         string dockerfile = File.ReadAllText(RepositoryPath("src", "MesCopilot.Api", "Dockerfile"));
 
         Assert.Contains("apt-get install -y --no-install-recommends curl", dockerfile);
+    }
+
+    [Fact]
+    public void WebDockerfile_ShouldUseNodeVersionCompatibleWithPinnedPnpm()
+    {
+        string dockerfile = File.ReadAllText(RepositoryPath("web", "Dockerfile"));
+        string packageJson = File.ReadAllText(RepositoryPath("web", "package.json"));
+        using JsonDocument package = JsonDocument.Parse(packageJson);
+
+        Assert.Contains("FROM node:22-alpine AS deps", dockerfile);
+        Assert.Contains("FROM node:22-alpine AS build", dockerfile);
+        Assert.Contains("FROM node:22-alpine AS final", dockerfile);
+        Assert.Equal("pnpm@11.7.0", package.RootElement.GetProperty("packageManager").GetString());
+    }
+
+    [Fact]
+    public void WebDockerignore_ShouldExcludeBuildOutputsAndDependencies()
+    {
+        string dockerignore = File.ReadAllText(RepositoryPath("web", ".dockerignore"));
+
+        foreach (string ignoredPath in new[] { "node_modules", ".next", "coverage", "tsconfig.tsbuildinfo" })
+        {
+            Assert.Contains(ignoredPath, dockerignore);
+        }
+    }
+
+    [Fact]
+    public void WebDockerfile_ShouldConfigurePnpmFetchResilience()
+    {
+        string dockerfile = File.ReadAllText(RepositoryPath("web", "Dockerfile"));
+
+        Assert.Contains("pnpm config set fetch-timeout 600000", dockerfile);
+        Assert.Contains("pnpm config set fetch-retries 5", dockerfile);
+        Assert.Contains("pnpm config set network-concurrency 8", dockerfile);
     }
 
     private static string RepositoryPath(params string[] segments)

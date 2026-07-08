@@ -1,0 +1,15 @@
+.next
+node_modules
+coverage
+dist
+build
+.vite
+TestResults
+tsconfig.tsbuildinfo
+*.log
+*.tmp
+*.temp
+.env
+.env.*
+!.env.example
+

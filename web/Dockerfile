@@ -1,10 +1,15 @@
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm config set fetch-timeout 600000 \
+    && pnpm config set fetch-retries 5 \
+    && pnpm config set fetch-retry-mintimeout 10000 \
+    && pnpm config set fetch-retry-maxtimeout 120000 \
+    && pnpm config set network-concurrency 8 \
+    && pnpm install --frozen-lockfile
 
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 RUN corepack enable
 ARG NEXT_PUBLIC_API_URL=http://localhost:5000/api
@@ -13,7 +18,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
 
-FROM node:20-alpine AS final
+FROM node:22-alpine AS final
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
