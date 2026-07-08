@@ -1,0 +1,30 @@
+## Local reference repositories
+references/
+
+## .NET
+bin/
+obj/
+TestResults/
+*.user
+*.suo
+.vs/
+
+## Frontend
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+.next/
+
+## Local configuration and secrets
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.*.local.json
+
+## Logs and temporary files
+*.log
+*.tmp
+*.temp
