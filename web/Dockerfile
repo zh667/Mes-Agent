@@ -19,7 +19,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable
 COPY --from=build /app/package.json /app/pnpm-lock.yaml ./
+COPY --from=build /app/next.config.mjs ./
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/node_modules ./node_modules
 EXPOSE 3000
-CMD ["pnpm", "start", "--", "-H", "0.0.0.0"]
+CMD ["pnpm", "start", "-H", "0.0.0.0"]

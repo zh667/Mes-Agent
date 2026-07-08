@@ -46,6 +46,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseMiddleware<ResponseTimeMiddleware>();
 app.UseAuthorization();
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
 app.MapControllers();
 app.MapHub<EquipmentHub>("/hubs/equipment");
 
