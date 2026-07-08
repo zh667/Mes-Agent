@@ -1,7 +1,17 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ChatInterface } from "@/components/agent/chat-interface";
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("ChatInterface", () => {
   it("renders the operations chat workspace with agent mode controls", () => {
@@ -61,5 +71,32 @@ describe("ChatInterface", () => {
       within(conversation).getByText("Which work orders are delayed today?"),
     ).toBeDefined();
     expect(screen.getByText("Agent is checking MES signals")).toBeDefined();
+  });
+
+  it("replaces the typing indicator with an agent response and result data", async () => {
+    vi.useFakeTimers();
+    render(<ChatInterface />);
+
+    fireEvent.change(
+      screen.getByLabelText("Ask the MES Copilot about production operations"),
+      {
+        target: { value: "Summarize delayed orders now" },
+      },
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+
+    expect(screen.getByText("Agent is checking MES signals")).toBeDefined();
+
+    await act(async () => {
+      vi.advanceTimersByTime(650);
+    });
+
+    const conversation = screen.getByLabelText("Conversation history");
+
+    expect(screen.queryByText("Agent is checking MES signals")).toBeNull();
+    expect(
+      within(conversation).getByText(/I found 2 delayed work orders/i),
+    ).toBeDefined();
+    expect(screen.getByText("WO-20260709-027")).toBeDefined();
   });
 });

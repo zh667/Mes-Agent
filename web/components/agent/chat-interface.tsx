@@ -12,7 +12,13 @@ import {
   Send,
   ShieldCheck,
 } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -32,6 +38,18 @@ type StructuredRow = {
   status: string;
   progress: string;
   risk: string;
+};
+
+type AgentDebug = {
+  tool: string;
+  dataSource: string;
+  latency: string;
+};
+
+type StructuredResult = {
+  summary: string;
+  rows: StructuredRow[];
+  debug: AgentDebug;
 };
 
 type AgentModeConfig = {
@@ -81,7 +99,14 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-const structuredRows: StructuredRow[] = [
+const initialStructuredResult: StructuredResult = {
+  summary: "Preview of the data shape returned by agent tools",
+  debug: {
+    tool: "GetTodayWorkOrders",
+    dataSource: "MES.WorkOrders",
+    latency: "142 ms",
+  },
+  rows: [
   {
     workOrder: "WO-20260709-014",
     product: "Valve Assembly",
@@ -103,7 +128,33 @@ const structuredRows: StructuredRow[] = [
     progress: "91%",
     risk: "None",
   },
-];
+  ],
+};
+
+const simulatedStructuredResult: StructuredResult = {
+  summary: "Agent response result set",
+  debug: {
+    tool: "AnalyzeDelayedOrders",
+    dataSource: "MES.WorkOrders",
+    latency: "189 ms",
+  },
+  rows: [
+    {
+      workOrder: "WO-20260709-027",
+      product: "Drive Motor",
+      status: "Delayed",
+      progress: "58%",
+      risk: "Missing operator confirmation",
+    },
+    {
+      workOrder: "WO-20260709-031",
+      product: "Control Panel",
+      status: "Delayed",
+      progress: "61%",
+      risk: "Line 2 alarm recovery",
+    },
+  ],
+};
 
 const samplePrompts = [
   "Which work orders are delayed today?",
@@ -117,12 +168,25 @@ export function ChatInterface() {
   const [prompt, setPrompt] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [structuredResult, setStructuredResult] = useState<StructuredResult>(
+    initialStructuredResult,
+  );
+  const messageSequenceRef = useRef(1);
+  const responseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeAgent = useMemo(
     () =>
       agentModes.find((mode) => mode.id === activeMode) ?? defaultAgentMode,
     [activeMode],
   );
+
+  useEffect(() => {
+    return () => {
+      if (responseTimerRef.current) {
+        clearTimeout(responseTimerRef.current);
+      }
+    };
+  }, []);
 
   function sendPrompt(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -132,10 +196,13 @@ export function ChatInterface() {
       return;
     }
 
+    messageSequenceRef.current += 1;
+    const userMessageId = `user-${messageSequenceRef.current}`;
+
     setMessages((currentMessages) => [
       ...currentMessages,
       {
-        id: `user-${currentMessages.length + 1}`,
+        id: userMessageId,
         role: "user",
         mode: activeMode,
         content: normalizedPrompt,
@@ -144,6 +211,28 @@ export function ChatInterface() {
     ]);
     setPrompt("");
     setIsTyping(true);
+
+    if (responseTimerRef.current) {
+      clearTimeout(responseTimerRef.current);
+    }
+
+    responseTimerRef.current = setTimeout(() => {
+      messageSequenceRef.current += 1;
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          id: `agent-${messageSequenceRef.current}`,
+          role: "agent",
+          mode: activeMode,
+          content:
+            "I found 2 delayed work orders and updated the structured result with the current risk drivers.",
+          timestamp: "Now",
+        },
+      ]);
+      setStructuredResult(simulatedStructuredResult);
+      setIsTyping(false);
+      responseTimerRef.current = null;
+    }, 600);
   }
 
   return (
@@ -252,6 +341,7 @@ export function ChatInterface() {
                     </span>
                     <span className="tabular-nums">{message.timestamp}</span>
                   </div>
+                  {/* Agent content is rendered as escaped JSX text. If markdown or HTML is introduced later, sanitize the response before rendering. */}
                   <p className="text-pretty">{message.content}</p>
                 </article>
               ))}
@@ -318,7 +408,7 @@ export function ChatInterface() {
                     Structured Result
                   </h2>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Preview of the data shape returned by agent tools
+                    {structuredResult.summary}
                   </p>
                 </div>
                 <Database className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -333,7 +423,7 @@ export function ChatInterface() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {structuredRows.map((row) => (
+                    {structuredResult.rows.map((row) => (
                       <tr key={row.workOrder}>
                         <td className="px-3 py-2">
                           <span className="block font-medium text-foreground">
@@ -387,9 +477,15 @@ export function ChatInterface() {
                     Execution Details
                   </h2>
                   <dl className="mt-3 grid gap-2 text-xs">
-                    <DebugRow label="Tool" value="GetTodayWorkOrders" />
-                    <DebugRow label="Data source" value="MES.WorkOrders" />
-                    <DebugRow label="Latency" value="142 ms" />
+                    <DebugRow label="Tool" value={structuredResult.debug.tool} />
+                    <DebugRow
+                      label="Data source"
+                      value={structuredResult.debug.dataSource}
+                    />
+                    <DebugRow
+                      label="Latency"
+                      value={structuredResult.debug.latency}
+                    />
                     <DebugRow label="Mode" value={activeAgent.label} />
                   </dl>
                 </div>
