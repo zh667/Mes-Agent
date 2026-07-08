@@ -36,4 +36,18 @@ public class TextChunkerTests
         Assert.True(chunks.Count > 1);
         Assert.Contains("word", chunks[1]);
     }
+
+    [Fact]
+    public void ChunkText_LongText_ShouldKeepEstimatedTokenOverlap()
+    {
+        var chunker = new TextChunker();
+        string text = string.Join(" ", Enumerable.Range(1, 900).Select(index => $"word{index:0000}"));
+
+        List<string> chunks = chunker.ChunkText(text);
+
+        Assert.True(chunks.Count > 1);
+        string[] firstChunkWords = chunks[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        string[] secondChunkWords = chunks[1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(firstChunkWords.TakeLast(75), secondChunkWords.Take(75));
+    }
 }

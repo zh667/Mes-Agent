@@ -1,5 +1,6 @@
 using MesCopilot.Application.Dtos;
 using MesCopilot.Application.Services;
+using MesCopilot.Domain.Entities.Knowledge;
 using MesCopilot.Domain.Enums;
 using MesCopilot.Infrastructure.Data;
 using MesCopilot.Infrastructure.DocumentParsers;
@@ -78,6 +79,32 @@ public class KnowledgeServiceTests
         Assert.Equal("[0.1,0.2]", chunk.Vector);
     }
 
+    [Fact]
+    public async Task UploadDocumentAsync_ShouldLimitEmbeddingConcurrency()
+    {
+        await using var context = CreateContext();
+        string longText = string.Join(" ", Enumerable.Range(1, 6000).Select(index => $"word{index:0000}"));
+        var parser = new FakeDocumentParser(new ParsedDocument(
+            longText,
+            [new ParsedDocumentSection(null, "Long SOP", longText)]));
+        var vectorStore = new ConcurrencyTrackingVectorStore();
+        var service = new KnowledgeService(context, [parser], new TextChunker(), vectorStore);
+        await using var content = new MemoryStream(Encoding.UTF8.GetBytes("ignored"));
+
+        await service.UploadDocumentAsync(new UploadDocumentRequest(
+            "Long SOP",
+            "long-sop.docx",
+            "/docs/long-sop.docx",
+            DocumentType.Sop,
+            1024,
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "Long document",
+            content));
+
+        Assert.True(await context.DocumentChunks.CountAsync() > 10);
+        Assert.InRange(vectorStore.MaxConcurrentCalls, 1, 10);
+    }
+
     private static MesDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<MesDbContext>()
@@ -119,6 +146,38 @@ public class KnowledgeServiceTests
         public Task<float[]> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(_embedding);
+        }
+    }
+
+    private sealed class ConcurrencyTrackingVectorStore : IVectorStore
+    {
+        private int _currentCalls;
+
+        public int MaxConcurrentCalls { get; private set; }
+
+        public async Task<float[]> GenerateEmbeddingAsync(string text)
+        {
+            int currentCalls = Interlocked.Increment(ref _currentCalls);
+            MaxConcurrentCalls = Math.Max(MaxConcurrentCalls, currentCalls);
+            try
+            {
+                await Task.Delay(10);
+                return [0.1f, 0.2f];
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _currentCalls);
+            }
+        }
+
+        public Task StoreChunkAsync(DocumentChunk chunk)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<List<DocumentChunk>> SearchSimilarAsync(string query, int topK = 5, double similarityThreshold = 0.7)
+        {
+            throw new NotSupportedException();
         }
     }
 }

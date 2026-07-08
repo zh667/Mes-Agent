@@ -79,7 +79,7 @@ public class WorkOrder
     /// 进度，范围按完成数量和计划数量计算。
     /// </summary>
     public decimal Progress => PlannedQuantity > 0
-        ? (decimal)CompletedQuantity / PlannedQuantity
+        ? Math.Min(1m, (decimal)CompletedQuantity / PlannedQuantity)
         : 0m;
 
     public Product Product { get; set; } = null!;

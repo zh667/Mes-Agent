@@ -10,6 +10,8 @@ namespace MesCopilot.Application.Services;
 
 public class KnowledgeService : IKnowledgeService
 {
+    private const int EmbeddingBatchSize = 10;
+
     private readonly MesDbContext _context;
     private readonly IReadOnlyList<IDocumentParser> _documentParsers;
     private readonly TextChunker? _textChunker;
@@ -102,10 +104,7 @@ public class KnowledgeService : IKnowledgeService
 
         ParsedDocument parsedDocument = await parser.ParseAsync(request.Content);
         List<string> chunkTexts = textChunker.ChunkText(parsedDocument.Text);
-        Task<float[]>[] embeddingTasks = chunkTexts
-            .Select(chunkText => vectorStore.GenerateEmbeddingAsync(chunkText))
-            .ToArray();
-        float[][] embeddings = await Task.WhenAll(embeddingTasks);
+        List<float[]> embeddings = await GenerateEmbeddingsInBatchesAsync(vectorStore, chunkTexts);
         List<DocumentChunk> chunks = chunkTexts
             .Select((chunkText, index) => new DocumentChunk
             {
@@ -123,6 +122,23 @@ public class KnowledgeService : IKnowledgeService
         await _context.SaveChangesAsync();
 
         return ToDto(document);
+    }
+
+    private static async Task<List<float[]>> GenerateEmbeddingsInBatchesAsync(
+        IVectorStore vectorStore,
+        IReadOnlyList<string> chunkTexts)
+    {
+        List<float[]> embeddings = [];
+        for (int index = 0; index < chunkTexts.Count; index += EmbeddingBatchSize)
+        {
+            List<string> batch = chunkTexts.Skip(index).Take(EmbeddingBatchSize).ToList();
+            Task<float[]>[] embeddingTasks = batch
+                .Select(chunkText => vectorStore.GenerateEmbeddingAsync(chunkText))
+                .ToArray();
+            embeddings.AddRange(await Task.WhenAll(embeddingTasks));
+        }
+
+        return embeddings;
     }
 
     public async Task<bool> DeleteAsync(int id)

@@ -5,6 +5,7 @@ public class TextChunker
     private const int ChunkSizeTokens = 800;
     private const int OverlapTokens = 100;
     private const int ApproximateCharactersPerToken = 4;
+    private const decimal WordsPerToken = 0.75m;
 
     public List<string> ChunkText(string text)
     {
@@ -24,7 +25,7 @@ public class TextChunker
             if (currentLength + word.Length > maxLength && currentChunk.Count > 0)
             {
                 chunks.Add(string.Join(" ", currentChunk));
-                currentChunk = currentChunk.TakeLast(OverlapTokens / ApproximateCharactersPerToken).ToList();
+                currentChunk = currentChunk.TakeLast(EstimateOverlapWordCount()).ToList();
                 currentLength = string.Join(" ", currentChunk).Length;
             }
 
@@ -38,5 +39,10 @@ public class TextChunker
         }
 
         return chunks;
+    }
+
+    private static int EstimateOverlapWordCount()
+    {
+        return Math.Max(1, (int)(OverlapTokens * WordsPerToken));
     }
 }

@@ -34,6 +34,20 @@ public class WorkOrderTests
     }
 
     [Fact]
+    public void WorkOrder_Progress_ShouldClampToOne_WhenCompletedQuantityExceedsPlan()
+    {
+        var workOrder = new WorkOrder
+        {
+            PlannedQuantity = 100,
+            CompletedQuantity = 125
+        };
+
+        var progress = workOrder.Progress;
+
+        Assert.Equal(1m, progress);
+    }
+
+    [Fact]
     public void WorkOrder_ShouldInitializeWithNotScheduledStatus()
     {
         var workOrder = new WorkOrder();

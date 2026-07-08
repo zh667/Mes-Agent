@@ -24,7 +24,8 @@ builder.Services.AddScoped<KnowledgeAgentPlugin>();
 var app = builder.Build();
 
 var connectionString = app.Configuration.GetConnectionString("MesDatabase");
-if (!string.IsNullOrWhiteSpace(connectionString) &&
+if (app.Environment.IsDevelopment() &&
+    !string.IsNullOrWhiteSpace(connectionString) &&
     !connectionString.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase))
 {
     using var scope = app.Services.CreateScope();
