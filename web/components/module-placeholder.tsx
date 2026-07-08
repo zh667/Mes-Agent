@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 
 type ModulePlaceholderProps = {
   title: string;
@@ -14,12 +15,12 @@ export function ModulePlaceholder({
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
-        <a
+        <Link
           href="/"
           className="text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           MES Copilot
-        </a>
+        </Link>
         <section className="rounded-md border border-border bg-card p-5">
           <div className="flex items-start gap-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-muted text-primary">

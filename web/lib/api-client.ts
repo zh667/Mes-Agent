@@ -12,12 +12,16 @@ export function getApiBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 }
 
-export const apiClient = axios.create({
-  baseURL: getApiBaseUrl(),
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+export function createApiClient() {
+  return axios.create({
+    baseURL: getApiBaseUrl(),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+export const apiClient = createApiClient();
 
 const workOrderRoutes = {
   getAll: "/WorkOrders",

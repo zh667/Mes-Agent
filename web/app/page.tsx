@@ -6,6 +6,7 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
+import Link from "next/link";
 
 const modules = [
   {
@@ -74,7 +75,7 @@ export default function Home() {
             {modules.map((item) => {
               const Icon = item.icon;
               return (
-                <a
+                <Link
                   key={item.href}
                   href={item.href}
                   className="group flex min-h-36 flex-col justify-between rounded-md border border-border bg-card p-4 transition-colors hover:border-primary"
@@ -95,7 +96,7 @@ export default function Home() {
                       {item.description}
                     </p>
                   </div>
-                </a>
+                </Link>
               );
             })}
           </div>

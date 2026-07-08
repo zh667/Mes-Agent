@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { getApiBaseUrl, workOrdersApi } from "./api-client";
+import { createApiClient, getApiBaseUrl, workOrdersApi } from "./api-client";
 
 const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -23,6 +23,16 @@ describe("getApiBaseUrl", () => {
     process.env.NEXT_PUBLIC_API_URL = "https://mes.example.test/api";
 
     expect(getApiBaseUrl()).toBe("https://mes.example.test/api");
+  });
+});
+
+describe("createApiClient", () => {
+  it("reads the current API URL when creating a client", () => {
+    process.env.NEXT_PUBLIC_API_URL = "https://mes.example.test/api";
+
+    expect(createApiClient().defaults.baseURL).toBe(
+      "https://mes.example.test/api",
+    );
   });
 });
 
