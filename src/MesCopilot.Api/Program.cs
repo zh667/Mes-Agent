@@ -1,4 +1,5 @@
 using MesCopilot.Application;
+using MesCopilot.Api.Hubs;
 using MesCopilot.Infrastructure;
 using MesCopilot.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 builder.Services.AddMesCopilotApplication();
 builder.Services.AddMesCopilotInfrastructure(builder.Configuration);
 
@@ -32,6 +34,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<EquipmentHub>("/hubs/equipment");
 
 app.Run();
 
