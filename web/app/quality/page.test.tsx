@@ -15,4 +15,17 @@ describe("QualityPage", () => {
     expect(screen.getByRole("heading", { name: "Defect Patterns" })).toBeDefined();
     expect(screen.queryByText(/entry point/i)).toBeNull();
   });
+
+  it("labels defect table columns for assistive technology", () => {
+    render(<QualityPage />);
+
+    for (const header of ["Defect", "Count", "Operation"]) {
+      expect(screen.getByRole("columnheader", { name: header })).toHaveAttribute(
+        "scope",
+        "col",
+      );
+    }
+
+    expect(screen.getByText("Surface scratch")).toBeDefined();
+  });
 });

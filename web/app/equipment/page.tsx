@@ -18,6 +18,12 @@ const alarms = [
   { time: "07:30", equipment: "Line 1 Press", code: "M004", message: "Maintenance cleared" },
 ];
 
+const oeeTrends = [
+  { label: "Availability", value: 82 },
+  { label: "Performance", value: 76 },
+  { label: "Quality", value: 96 },
+];
+
 export default function EquipmentPage() {
   return (
     <OperationsPageShell
@@ -75,22 +81,18 @@ export default function EquipmentPage() {
             description="Compact trend bars for availability, performance, and quality."
           >
             <div className="grid gap-3">
-              {[
-                ["Availability", "82%"],
-                ["Performance", "76%"],
-                ["Quality", "96%"],
-              ].map(([label, value]) => (
-                <div key={label}>
+              {oeeTrends.map((trend) => (
+                <div key={trend.label}>
                   <div className="mb-1 flex justify-between text-xs">
-                    <span className="text-muted-foreground">{label}</span>
+                    <span className="text-muted-foreground">{trend.label}</span>
                     <span className="font-medium tabular-nums text-foreground">
-                      {value}
+                      {trend.value}%
                     </span>
                   </div>
                   <div className="h-2 rounded-full bg-muted">
                     <div
                       className="h-2 rounded-full bg-primary"
-                      style={{ width: value }}
+                      style={{ width: `${trend.value}%` }}
                     />
                   </div>
                 </div>

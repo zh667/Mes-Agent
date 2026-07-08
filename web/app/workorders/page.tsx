@@ -71,13 +71,22 @@ export default function WorkOrdersPage() {
               />
             </label>
             <div className="flex gap-2">
-              <button className="min-h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-[background-color,scale] duration-150 hover:bg-primary/90 active:scale-[0.96]">
+              <button
+                type="button"
+                className="min-h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-[background-color,scale] duration-150 hover:bg-primary/90 active:scale-[0.96]"
+              >
                 Start
               </button>
-              <button className="min-h-11 rounded-md bg-muted px-4 text-sm font-medium text-foreground transition-[background-color,scale] duration-150 hover:bg-border active:scale-[0.96]">
+              <button
+                type="button"
+                className="min-h-11 rounded-md bg-muted px-4 text-sm font-medium text-foreground transition-[background-color,scale] duration-150 hover:bg-border active:scale-[0.96]"
+              >
                 Report
               </button>
-              <button className="min-h-11 rounded-md bg-muted px-4 text-sm font-medium text-foreground transition-[background-color,scale] duration-150 hover:bg-border active:scale-[0.96]">
+              <button
+                type="button"
+                className="min-h-11 rounded-md bg-muted px-4 text-sm font-medium text-foreground transition-[background-color,scale] duration-150 hover:bg-border active:scale-[0.96]"
+              >
                 Complete
               </button>
             </div>
@@ -86,11 +95,21 @@ export default function WorkOrdersPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-muted text-xs text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2 font-medium">Work order</th>
-                  <th className="px-3 py-2 font-medium">Line</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Progress</th>
-                  <th className="px-3 py-2 font-medium">Risk</th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Work order
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Line
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Status
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Progress
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Risk
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">

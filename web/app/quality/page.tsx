@@ -97,9 +97,15 @@ export default function QualityPage() {
               <table className="w-full text-left text-sm">
                 <thead className="bg-muted text-xs text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-2 font-medium">Defect</th>
-                    <th className="px-3 py-2 font-medium">Count</th>
-                    <th className="px-3 py-2 font-medium">Operation</th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Defect
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Count
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-medium">
+                      Operation
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">

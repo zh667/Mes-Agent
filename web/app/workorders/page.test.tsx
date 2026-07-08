@@ -16,4 +16,24 @@ describe("WorkOrdersPage", () => {
     expect(screen.getByRole("button", { name: "Complete" })).toBeDefined();
     expect(screen.queryByText(/entry point/i)).toBeNull();
   });
+
+  it("exposes table headers and action buttons with explicit semantics", () => {
+    render(<WorkOrdersPage />);
+
+    for (const header of ["Work order", "Line", "Status", "Progress", "Risk"]) {
+      expect(screen.getByRole("columnheader", { name: header })).toHaveAttribute(
+        "scope",
+        "col",
+      );
+    }
+
+    for (const action of ["Start", "Report", "Complete"]) {
+      expect(screen.getByRole("button", { name: action })).toHaveAttribute(
+        "type",
+        "button",
+      );
+    }
+
+    expect(screen.getByText("WO-20260709-014")).toBeDefined();
+  });
 });
