@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\MesCopilot.Domain\MesCopilot.Domain.csproj" />
     <ProjectReference Include="..\..\src\MesCopilot.Infrastructure\MesCopilot.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\MesCopilot.Application\MesCopilot.Application.csproj" />
   </ItemGroup>
 
 </Project>
