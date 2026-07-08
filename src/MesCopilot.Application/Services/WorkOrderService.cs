@@ -119,7 +119,10 @@ public class WorkOrderService : IWorkOrderService
     public async Task<IEnumerable<WorkOrderDto>> GetTodayWorkOrdersAsync(int? productionLineId = null)
     {
         var today = DateTime.UtcNow.Date;
-        var query = BaseQuery().Where(workOrder => workOrder.CreatedAt.Date == today);
+        var tomorrow = today.AddDays(1);
+        var query = BaseQuery().Where(workOrder =>
+            workOrder.CreatedAt >= today &&
+            workOrder.CreatedAt < tomorrow);
 
         if (productionLineId.HasValue)
         {
@@ -156,6 +159,7 @@ public class WorkOrderService : IWorkOrderService
     private IQueryable<WorkOrder> BaseQuery()
     {
         return _context.WorkOrders
+            .AsNoTracking()
             .Include(workOrder => workOrder.Product)
             .Include(workOrder => workOrder.ProductionLine);
     }

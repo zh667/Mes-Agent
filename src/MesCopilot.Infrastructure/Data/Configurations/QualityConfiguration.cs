@@ -19,6 +19,7 @@ public class QualityInspectionConfiguration : IEntityTypeConfiguration<QualityIn
 
         builder.HasIndex(inspection => inspection.Code).IsUnique();
         builder.HasIndex(inspection => inspection.BatchNumber);
+        builder.HasIndex(inspection => inspection.InspectionTime);
 
         builder.HasOne(inspection => inspection.WorkOrder)
             .WithMany()

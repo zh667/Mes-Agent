@@ -28,7 +28,18 @@ public class CalculateOeeTool
 
         return new FunctionCallResult
         {
-            Data = oee,
+            Data = new
+            {
+                equipmentId = oee.EquipmentId,
+                date = oee.Date,
+                availability = oee.Availability,
+                performance = oee.Performance,
+                quality = oee.Quality,
+                oee = oee.Oee,
+                totalOutput = oee.TotalOutput,
+                qualifiedOutput = oee.QualifiedOutput,
+                runningMinutes = oee.RunningMinutes
+            },
             Explanation = $"Equipment {equipmentId} OEE is {oee.Oee * 100:0.#}% on {normalizedDate:yyyy-MM-dd}.",
             Debug = CreateDebug(debugMode, stopwatch)
         };

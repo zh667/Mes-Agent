@@ -31,6 +31,29 @@ public class WorkOrderServiceTests
     }
 
     [Fact]
+    public async Task GetAllAsync_ShouldNotTrackReturnedWorkOrders()
+    {
+        await using var context = CreateInMemoryContext();
+        await SeedRequiredLookupsAsync(context);
+        context.WorkOrders.Add(new WorkOrder
+        {
+            Id = 1,
+            Code = "WO-NOTRACK",
+            ProductId = 1,
+            ProductionLineId = 1,
+            PlannedQuantity = 100,
+            CreatedAt = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+        var service = new WorkOrderService(context);
+
+        _ = (await service.GetAllAsync()).ToList();
+
+        Assert.Empty(context.ChangeTracker.Entries<WorkOrder>());
+    }
+
+    [Fact]
     public async Task StartAsync_ShouldUpdateStatusAndSetActualStartTime()
     {
         await using var context = CreateInMemoryContext();

@@ -50,6 +50,18 @@ public class WorkOrdersControllerTests : IClassFixture<WorkOrdersApiFactory>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetAll_ShouldIncludeResponseTimeHeader()
+    {
+        var response = await _client.GetAsync("/api/workorders");
+
+        response.EnsureSuccessStatusCode();
+        Assert.True(response.Headers.Contains("X-Response-Time-ms"));
+        string value = Assert.Single(response.Headers.GetValues("X-Response-Time-ms"));
+        Assert.True(decimal.TryParse(value, out decimal elapsedMilliseconds));
+        Assert.True(elapsedMilliseconds >= 0m);
+    }
 }
 
 public class WorkOrdersApiFactory : WebApplicationFactory<Program>

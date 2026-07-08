@@ -1,5 +1,7 @@
 using MesCopilot.Application;
 using MesCopilot.Api.Hubs;
+using MesCopilot.Api.Middleware;
+using MesCopilot.Agent.Caching;
 using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin;
 using MesCopilot.Agent.Plugins.OeeAgentPlugin;
 using MesCopilot.Agent.Plugins.ProductionAgentPlugin;
@@ -16,6 +18,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
 builder.Services.AddMesCopilotApplication();
 builder.Services.AddMesCopilotInfrastructure(builder.Configuration);
+builder.Services.AddSingleton<IAgentResponseCache, InMemoryAgentResponseCache>();
 builder.Services.AddScoped<ProductionAgentPlugin>();
 builder.Services.AddScoped<QualityAgentPlugin>();
 builder.Services.AddScoped<OeeAgentPlugin>();
@@ -41,6 +44,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ResponseTimeMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<EquipmentHub>("/hubs/equipment");

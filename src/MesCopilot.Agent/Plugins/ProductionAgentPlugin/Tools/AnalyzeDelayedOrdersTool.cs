@@ -35,17 +35,19 @@ public class AnalyzeDelayedOrdersTool
             ["Staffing gap"] = delayedOrders.Count - delayedOrders.Count / 3 * 2
         };
 
+        var workOrders = delayedOrders.Select(workOrder => new
+        {
+            workOrder.Id,
+            workOrder.Code,
+            workOrder.ProductName,
+            workOrder.PlannedEndTime,
+            delayDays = Math.Max(0, (DateTime.UtcNow - workOrder.PlannedEndTime).Days),
+            delayReason = reasons.Keys.ElementAt(workOrder.Id % reasons.Count)
+        }).ToList();
+
         var data = new
         {
-            delayedOrders = delayedOrders.Select(workOrder => new
-            {
-                workOrder.Id,
-                workOrder.Code,
-                workOrder.ProductName,
-                workOrder.PlannedEndTime,
-                delayDays = Math.Max(0, (DateTime.UtcNow - workOrder.PlannedEndTime).Days),
-                delayReason = reasons.Keys.ElementAt(workOrder.Id % reasons.Count)
-            }),
+            workOrders,
             totalCount = delayedOrders.Count,
             reasons
         };
@@ -53,7 +55,7 @@ public class AnalyzeDelayedOrdersTool
         return new FunctionCallResult
         {
             Data = data,
-            Explanation = $"There are {data.totalCount} delayed work orders. Main reasons: {string.Join(", ", reasons.Select(reason => $"{reason.Key}({reason.Value})"))}.",
+            Explanation = $"There are {data.totalCount} delayed work orders（延期工单）. Main reasons: {string.Join(", ", reasons.Select(reason => $"{reason.Key}({reason.Value})"))}.",
             Debug = debugMode ? new DebugInfo
             {
                 ExecutionTime = $"{stopwatch.ElapsedMilliseconds}ms",

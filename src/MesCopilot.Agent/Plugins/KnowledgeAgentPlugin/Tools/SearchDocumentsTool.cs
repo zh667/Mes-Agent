@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Globalization;
+using MesCopilot.Agent.Caching;
 using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin;
 using MesCopilot.Agent.Models;
 using MesCopilot.Application.Dtos;
@@ -8,8 +10,11 @@ namespace MesCopilot.Agent.Plugins.KnowledgeAgentPlugin.Tools;
 
 public class SearchDocumentsTool
 {
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+
     private readonly IKnowledgeService _knowledgeService;
     private readonly IRagAnswerGenerator _answerGenerator;
+    private readonly IAgentResponseCache? _responseCache;
 
     public SearchDocumentsTool(IKnowledgeService knowledgeService)
         : this(knowledgeService, new ContextualRagAnswerGenerator())
@@ -19,9 +24,18 @@ public class SearchDocumentsTool
     public SearchDocumentsTool(
         IKnowledgeService knowledgeService,
         IRagAnswerGenerator answerGenerator)
+        : this(knowledgeService, answerGenerator, null)
+    {
+    }
+
+    public SearchDocumentsTool(
+        IKnowledgeService knowledgeService,
+        IRagAnswerGenerator answerGenerator,
+        IAgentResponseCache? responseCache)
     {
         _knowledgeService = knowledgeService;
         _answerGenerator = answerGenerator;
+        _responseCache = responseCache;
     }
 
     public string Name => "SearchDocuments";
@@ -35,7 +49,20 @@ public class SearchDocumentsTool
         double similarityThreshold = 0.7)
     {
         string normalizedQuery = ValidateArguments(query, topK, similarityThreshold);
+        string cacheKey = BuildCacheKey(normalizedQuery, topK, similarityThreshold);
         Stopwatch stopwatch = Stopwatch.StartNew();
+        if (_responseCache is not null &&
+            _responseCache.TryGet(cacheKey, out FunctionCallResult cachedResult))
+        {
+            stopwatch.Stop();
+            return new FunctionCallResult
+            {
+                Data = cachedResult.Data,
+                Explanation = cachedResult.Explanation,
+                Debug = CreateDebug(debugMode, stopwatch, "Agent.ResponseCache")
+            };
+        }
+
         IReadOnlyList<DocumentSearchResultDto> chunks = await _knowledgeService.SearchSimilarAsync(
             normalizedQuery,
             topK,
@@ -56,7 +83,7 @@ public class SearchDocumentsTool
             sectionTitle = chunk.SectionTitle
         }).ToList();
 
-        return new FunctionCallResult
+        var result = new FunctionCallResult
         {
             Data = new
             {
@@ -69,6 +96,9 @@ public class SearchDocumentsTool
             Explanation = $"RAG search retrieved {chunks.Count} knowledge chunks for '{normalizedQuery}' from {sources.Count} sources.",
             Debug = CreateDebug(debugMode, stopwatch)
         };
+
+        _responseCache?.Set(cacheKey, result, CacheDuration);
+        return result;
     }
 
     private static string ValidateArguments(string query, int topK, double similarityThreshold)
@@ -111,12 +141,24 @@ public class SearchDocumentsTool
             .ToList();
     }
 
-    private DebugInfo? CreateDebug(bool debugMode, Stopwatch stopwatch)
+    private static string BuildCacheKey(string query, int topK, double similarityThreshold)
+    {
+        return string.Join(
+            "|",
+            query.ToUpperInvariant(),
+            topK.ToString(CultureInfo.InvariantCulture),
+            similarityThreshold.ToString("R", CultureInfo.InvariantCulture));
+    }
+
+    private DebugInfo? CreateDebug(
+        bool debugMode,
+        Stopwatch stopwatch,
+        string dataSource = "RAG.VectorSearch")
     {
         return debugMode ? new DebugInfo
         {
             ExecutionTime = $"{stopwatch.ElapsedMilliseconds}ms",
-            DataSource = "RAG.VectorSearch",
+            DataSource = dataSource,
             ToolsCalled = new List<string> { Name }
         } : null;
     }

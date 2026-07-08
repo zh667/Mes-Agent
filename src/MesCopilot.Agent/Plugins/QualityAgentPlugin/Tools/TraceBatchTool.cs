@@ -29,11 +29,42 @@ public class TraceBatchTool
         Application.Dtos.BatchTraceDto trace = await _qualityService.TraceBatchAsync(normalizedBatchNumber);
         stopwatch.Stop();
 
+        var firstReport = trace.ProductionReports.FirstOrDefault();
+        var workOrder = firstReport is null
+            ? null
+            : new
+            {
+                id = firstReport.WorkOrderId,
+                batchNumber = trace.BatchNumber
+            };
+        var processSteps = trace.ProductionReports
+            .Select(report => new
+            {
+                id = report.ProcessStepId,
+                report.Timestamp,
+                report.OperatorId,
+                report.OperatorName,
+                report.Quantity,
+                report.QualifiedQuantity
+            })
+            .Distinct()
+            .ToList();
+        var equipment = trace.ProductionReports
+            .Select(report => new
+            {
+                id = report.EquipmentId
+            })
+            .Distinct()
+            .ToList();
+
         var data = new
         {
             trace.BatchNumber,
             trace.ProductionReports,
             trace.Inspections,
+            workOrder,
+            processSteps,
+            equipment,
             productionReportCount = trace.ProductionReports.Count,
             inspectionCount = trace.Inspections.Count
         };
@@ -41,7 +72,7 @@ public class TraceBatchTool
         return new FunctionCallResult
         {
             Data = data,
-            Explanation = $"Batch {normalizedBatchNumber} has {data.productionReportCount} production reports and {data.inspectionCount} inspections.",
+            Explanation = $"Batch {normalizedBatchNumber} trace（追溯） has {data.productionReportCount} production reports and {data.inspectionCount} inspections.",
             Debug = CreateDebug(debugMode, stopwatch)
         };
     }

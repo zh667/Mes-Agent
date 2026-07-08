@@ -1,4 +1,5 @@
 using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin;
+using MesCopilot.Agent.Caching;
 using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin.Tools;
 using MesCopilot.Application.Dtos;
 using MesCopilot.Application.Services;
@@ -40,6 +41,25 @@ public class KnowledgeAgentPluginTests
         Assert.Equal(0.6, service.LastSimilarityThreshold);
         Assert.Equal("A102 alarm", answerGenerator.LastQuery);
         Assert.Single(answerGenerator.LastContext);
+    }
+
+    [Fact]
+    public async Task SearchDocumentsTool_RepeatedQuery_ShouldUseCachedResponse()
+    {
+        var service = new FakeKnowledgeService();
+        var answerGenerator = new FakeRagAnswerGenerator("Stop the line and inspect the A102 sensor.");
+        var cache = new InMemoryAgentResponseCache();
+        var tool = new SearchDocumentsTool(service, answerGenerator, cache);
+
+        var first = await tool.ExecuteAsync("A102 alarm", debugMode: true, topK: 3, similarityThreshold: 0.6);
+        var second = await tool.ExecuteAsync(" A102 alarm ", debugMode: true, topK: 3, similarityThreshold: 0.6);
+
+        Assert.NotNull(first.Data);
+        Assert.NotNull(second.Data);
+        Assert.Equal(1, service.SearchCallCount);
+        Assert.Equal(1, answerGenerator.GenerateCallCount);
+        Assert.Equal("Agent.ResponseCache", second.Debug?.DataSource);
+        Assert.Equal("SearchDocuments", second.Debug?.ToolsCalled?.Single());
     }
 
     [Fact]
@@ -124,6 +144,8 @@ public class KnowledgeAgentPluginTests
 
         public double? LastSimilarityThreshold { get; private set; }
 
+        public int SearchCallCount { get; private set; }
+
         public Task<IEnumerable<DocumentDto>> GetAllAsync()
         {
             return Task.FromResult<IEnumerable<DocumentDto>>(Documents);
@@ -149,6 +171,7 @@ public class KnowledgeAgentPluginTests
             int topK = 5,
             double similarityThreshold = 0.7)
         {
+            SearchCallCount++;
             LastSearchQuery = query;
             LastTopK = topK;
             LastSimilarityThreshold = similarityThreshold;
@@ -175,10 +198,13 @@ public class KnowledgeAgentPluginTests
 
         public IReadOnlyList<DocumentSearchResultDto> LastContext { get; private set; }
 
+        public int GenerateCallCount { get; private set; }
+
         public Task<string> GenerateAnswerAsync(
             string query,
             IReadOnlyList<DocumentSearchResultDto> context)
         {
+            GenerateCallCount++;
             LastQuery = query;
             LastContext = context;
             return Task.FromResult(_answer);

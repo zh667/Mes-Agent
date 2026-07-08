@@ -17,6 +17,8 @@ public class WorkOrderConfiguration : IEntityTypeConfiguration<WorkOrder>
         builder.HasIndex(workOrder => workOrder.Code).IsUnique();
         builder.HasIndex(workOrder => workOrder.Status);
         builder.HasIndex(workOrder => workOrder.PlannedStartTime);
+        builder.HasIndex(workOrder => workOrder.PlannedEndTime);
+        builder.HasIndex(workOrder => workOrder.CreatedAt);
 
         builder.HasOne(workOrder => workOrder.Product)
             .WithMany()

@@ -70,6 +70,23 @@ public class MesDbContextTests
         Assert.True(index.IsUnique);
     }
 
+    [Theory]
+    [InlineData(typeof(WorkOrder), nameof(WorkOrder.CreatedAt))]
+    [InlineData(typeof(WorkOrder), nameof(WorkOrder.PlannedEndTime))]
+    [InlineData(typeof(QualityInspection), nameof(QualityInspection.InspectionTime))]
+    public void MesDbContext_ShouldConfigureReadQueryIndexes(Type entityType, string propertyName)
+    {
+        using var context = CreateContext();
+
+        var entity = context.Model.FindEntityType(entityType);
+        var property = entity?.FindProperty(propertyName);
+        var index = property is null ? null : entity?.FindIndex(property);
+
+        Assert.NotNull(entity);
+        Assert.NotNull(property);
+        Assert.NotNull(index);
+    }
+
     private static MesDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<MesDbContext>()
