@@ -30,6 +30,7 @@ public class DocumentChunkConfiguration : IEntityTypeConfiguration<DocumentChunk
         builder.HasKey(chunk => chunk.Id);
 
         builder.Property(chunk => chunk.Content).IsRequired();
+        builder.Property(chunk => chunk.Vector).HasColumnType("vector(1536)");
         builder.Property(chunk => chunk.SectionTitle).HasMaxLength(200);
 
         builder.HasIndex(chunk => new { chunk.DocumentId, chunk.Sequence }).IsUnique();

@@ -1,4 +1,5 @@
 using MesCopilot.Infrastructure.Data;
+using MesCopilot.Infrastructure.VectorStore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,8 @@ public static class DependencyInjection
         }
 
         services.AddDbContext<MesDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddHttpClient<IEmbeddingClient, OpenAiEmbeddingClient>();
+        services.AddScoped<IVectorStore, PgVectorStore>();
 
         return services;
     }
