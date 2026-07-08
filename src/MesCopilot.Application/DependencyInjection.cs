@@ -8,6 +8,7 @@ public static class DependencyInjection
     public static IServiceCollection AddMesCopilotApplication(this IServiceCollection services)
     {
         services.AddScoped<IWorkOrderService, WorkOrderService>();
+        services.AddScoped<IEquipmentService, EquipmentService>();
         return services;
     }
 }
