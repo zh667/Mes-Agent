@@ -6,7 +6,17 @@ namespace MesCopilot.DeviceSimulator.Services;
 
 public class EquipmentStateCalculator
 {
-    private readonly Random _random = new();
+    private readonly Random _random;
+
+    public EquipmentStateCalculator()
+        : this(new Random())
+    {
+    }
+
+    public EquipmentStateCalculator(Random random)
+    {
+        _random = random;
+    }
 
     public EquipmentState DetermineState(Equipment equipment, WorkOrder? activeWorkOrder)
     {

@@ -26,9 +26,12 @@ public class ContextualRagAnswerGeneratorTests
 
         string answer = await generator.GenerateAnswerAsync("alarm A102", [result]);
 
-        Assert.StartsWith("Based on SOP A102:", answer);
+        const string prefix = "Based on SOP A102: ";
+        Assert.StartsWith(prefix, answer);
         Assert.EndsWith("...", answer);
-        Assert.DoesNotContain(new string('a', 650), answer);
+        Assert.Equal(prefix.Length + 600 + 3, answer.Length);
+        Assert.Contains(new string('a', 600), answer);
+        Assert.DoesNotContain(new string('a', 601), answer);
     }
 
     [Fact]
