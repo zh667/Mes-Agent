@@ -12,5 +12,10 @@ public interface IKnowledgeService
 
     Task<DocumentDto> UploadDocumentAsync(UploadDocumentRequest request);
 
+    Task<IReadOnlyList<DocumentSearchResultDto>> SearchSimilarAsync(
+        string query,
+        int topK = 5,
+        double similarityThreshold = 0.7);
+
     Task<bool> DeleteAsync(int id);
 }

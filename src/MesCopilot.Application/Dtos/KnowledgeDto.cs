@@ -15,6 +15,18 @@ public record DocumentDto(
     string? Description
 );
 
+public record DocumentSearchResultDto(
+    int ChunkId,
+    int DocumentId,
+    string DocumentTitle,
+    string FileName,
+    DocumentType DocumentType,
+    int Sequence,
+    string Content,
+    int? PageNumber,
+    string? SectionTitle
+);
+
 public record CreateDocumentRequest(
     string Title,
     string FileName,

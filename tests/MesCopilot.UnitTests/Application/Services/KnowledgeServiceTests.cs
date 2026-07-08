@@ -105,6 +105,58 @@ public class KnowledgeServiceTests
         Assert.InRange(vectorStore.MaxConcurrentCalls, 1, 10);
     }
 
+    [Fact]
+    public async Task SearchSimilarAsync_ShouldReturnChunksWithDocumentSources()
+    {
+        await using MesDbContext context = CreateContext();
+        var document = new Document
+        {
+            Title = "SOP A102 Alarm Handling",
+            FileName = "sop-a102.pdf",
+            FilePath = "/docs/sop-a102.pdf",
+            Type = DocumentType.Sop,
+            FileSize = 2048,
+            MimeType = "application/pdf",
+            UploadedAt = DateTime.UtcNow,
+            VectorizationStatus = "completed",
+            Description = "Alarm handling"
+        };
+        context.Documents.Add(document);
+        await context.SaveChangesAsync();
+
+        var chunk = new DocumentChunk
+        {
+            Id = 10,
+            DocumentId = document.Id,
+            Sequence = 2,
+            Content = "Alarm A102 requires stopping the line and checking the sensor.",
+            TokenCount = 11,
+            PageNumber = 4,
+            SectionTitle = "A102 alarm"
+        };
+        var vectorStore = new FakeVectorStore([chunk]);
+        var service = new KnowledgeService(context, [], new TextChunker(), vectorStore);
+
+        IReadOnlyList<DocumentSearchResultDto> results = await service.SearchSimilarAsync(
+            "A102 alarm",
+            topK: 3,
+            similarityThreshold: 0.6);
+
+        DocumentSearchResultDto result = Assert.Single(results);
+        Assert.Equal(10, result.ChunkId);
+        Assert.Equal(document.Id, result.DocumentId);
+        Assert.Equal("SOP A102 Alarm Handling", result.DocumentTitle);
+        Assert.Equal("sop-a102.pdf", result.FileName);
+        Assert.Equal(DocumentType.Sop, result.DocumentType);
+        Assert.Equal("Alarm A102 requires stopping the line and checking the sensor.", result.Content);
+        Assert.Equal(2, result.Sequence);
+        Assert.Equal(4, result.PageNumber);
+        Assert.Equal("A102 alarm", result.SectionTitle);
+        Assert.Equal("A102 alarm", vectorStore.LastQuery);
+        Assert.Equal(3, vectorStore.LastTopK);
+        Assert.Equal(0.6, vectorStore.LastSimilarityThreshold);
+    }
+
     private static MesDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<MesDbContext>()
@@ -178,6 +230,40 @@ public class KnowledgeServiceTests
         public Task<List<DocumentChunk>> SearchSimilarAsync(string query, int topK = 5, double similarityThreshold = 0.7)
         {
             throw new NotSupportedException();
+        }
+    }
+
+    private sealed class FakeVectorStore : IVectorStore
+    {
+        private readonly List<DocumentChunk> _chunks;
+
+        public FakeVectorStore(List<DocumentChunk> chunks)
+        {
+            _chunks = chunks;
+        }
+
+        public string? LastQuery { get; private set; }
+
+        public int? LastTopK { get; private set; }
+
+        public double? LastSimilarityThreshold { get; private set; }
+
+        public Task<float[]> GenerateEmbeddingAsync(string text)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task StoreChunkAsync(DocumentChunk chunk)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<List<DocumentChunk>> SearchSimilarAsync(string query, int topK = 5, double similarityThreshold = 0.7)
+        {
+            LastQuery = query;
+            LastTopK = topK;
+            LastSimilarityThreshold = similarityThreshold;
+            return Task.FromResult(_chunks);
         }
     }
 }

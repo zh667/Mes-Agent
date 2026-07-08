@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin;
 using MesCopilot.Agent.Models;
 using MesCopilot.Application.Dtos;
 using MesCopilot.Application.Services;
@@ -8,55 +9,126 @@ namespace MesCopilot.Agent.Plugins.KnowledgeAgentPlugin.Tools;
 public class SearchDocumentsTool
 {
     private readonly IKnowledgeService _knowledgeService;
+    private readonly IRagAnswerGenerator _answerGenerator;
 
     public SearchDocumentsTool(IKnowledgeService knowledgeService)
+        : this(knowledgeService, new ContextualRagAnswerGenerator())
+    {
+    }
+
+    public SearchDocumentsTool(
+        IKnowledgeService knowledgeService,
+        IRagAnswerGenerator answerGenerator)
     {
         _knowledgeService = knowledgeService;
+        _answerGenerator = answerGenerator;
     }
 
     public string Name => "SearchDocuments";
 
-    public string Description => "Search document metadata by keyword.";
+    public string Description => "Search the knowledge base with RAG vector retrieval and return an answer with sources.";
 
-    public async Task<FunctionCallResult> ExecuteAsync(string query, bool debugMode = false)
+    public async Task<FunctionCallResult> ExecuteAsync(
+        string query,
+        bool debugMode = false,
+        int topK = 5,
+        double similarityThreshold = 0.7)
     {
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            throw new ArgumentException("Search query is required.", nameof(query));
-        }
-
-        string normalizedQuery = query.Trim();
+        string normalizedQuery = ValidateArguments(query, topK, similarityThreshold);
         Stopwatch stopwatch = Stopwatch.StartNew();
-        List<DocumentDto> documents = await FindMatchingDocumentsAsync(normalizedQuery);
+        IReadOnlyList<DocumentSearchResultDto> chunks = await _knowledgeService.SearchSimilarAsync(
+            normalizedQuery,
+            topK,
+            similarityThreshold);
+        string prompt = BuildPrompt(normalizedQuery, chunks);
+        string answer = await _answerGenerator.GenerateAnswerAsync(normalizedQuery, chunks);
         stopwatch.Stop();
+        var sources = BuildSources(chunks);
+        var chunkData = chunks.Select(chunk => new
+        {
+            chunkId = chunk.ChunkId,
+            documentId = chunk.DocumentId,
+            documentTitle = chunk.DocumentTitle,
+            fileName = chunk.FileName,
+            documentType = chunk.DocumentType.ToString(),
+            sequence = chunk.Sequence,
+            content = chunk.Content,
+            pageNumber = chunk.PageNumber,
+            sectionTitle = chunk.SectionTitle
+        }).ToList();
 
         return new FunctionCallResult
         {
             Data = new
             {
                 query = normalizedQuery,
-                documents,
-                totalCount = documents.Count
+                answer,
+                sources,
+                chunks = chunkData,
+                prompt,
+                totalCount = chunks.Count
             },
-            Explanation = $"Found {documents.Count} documents matching '{normalizedQuery}'.",
+            Explanation = $"RAG search retrieved {chunks.Count} knowledge chunks for '{normalizedQuery}' from {sources.Count} sources.",
             Debug = CreateDebug(debugMode, stopwatch)
         };
     }
 
-    private async Task<List<DocumentDto>> FindMatchingDocumentsAsync(string query)
+    private static string ValidateArguments(string query, int topK, double similarityThreshold)
     {
-        List<DocumentDto> documents = (await _knowledgeService.GetAllAsync()).ToList();
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            throw new ArgumentException("Search query is required.", nameof(query));
+        }
 
-        return documents
-            .Where(document => Contains(document.Title, query) ||
-                               Contains(document.FileName, query) ||
-                               Contains(document.Description, query))
-            .ToList();
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(topK);
+        if (similarityThreshold < 0d || similarityThreshold > 1d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(similarityThreshold), "Similarity threshold must be in the range [0, 1].");
+        }
+
+        return query.Trim();
     }
 
-    private static bool Contains(string? value, string query)
+    private static string BuildPrompt(
+        string query,
+        IReadOnlyList<DocumentSearchResultDto> chunks)
     {
-        return value?.Contains(query, StringComparison.OrdinalIgnoreCase) == true;
+        if (chunks.Count == 0)
+        {
+            return $"Question: {query}{Environment.NewLine}No relevant knowledge-base context was retrieved.";
+        }
+
+        IEnumerable<string> contextLines = chunks.Select((chunk, index) =>
+            $"Source {index + 1}: {chunk.DocumentTitle} ({chunk.FileName}), chunk {chunk.Sequence}{Environment.NewLine}{chunk.Content}");
+
+        return string.Join(
+            Environment.NewLine + Environment.NewLine,
+            [
+                "Answer the manufacturing knowledge question using only the retrieved context.",
+                $"Question: {query}",
+                "Context:",
+                string.Join(Environment.NewLine + Environment.NewLine, contextLines),
+                "Include source titles when useful."
+            ]);
+    }
+
+    private static List<object> BuildSources(IReadOnlyList<DocumentSearchResultDto> chunks)
+    {
+        return chunks
+            .GroupBy(chunk => chunk.DocumentId)
+            .Select(group =>
+            {
+                DocumentSearchResultDto firstChunk = group.First();
+                return (object)new
+                {
+                    documentId = firstChunk.DocumentId,
+                    title = firstChunk.DocumentTitle,
+                    fileName = firstChunk.FileName,
+                    documentType = firstChunk.DocumentType.ToString(),
+                    chunkCount = group.Count()
+                };
+            })
+            .ToList();
     }
 
     private DebugInfo? CreateDebug(bool debugMode, Stopwatch stopwatch)
@@ -64,7 +136,7 @@ public class SearchDocumentsTool
         return debugMode ? new DebugInfo
         {
             ExecutionTime = $"{stopwatch.ElapsedMilliseconds}ms",
-            DataSource = "MesCopilot.Database",
+            DataSource = "RAG.VectorSearch",
             ToolsCalled = new List<string> { Name }
         } : null;
     }

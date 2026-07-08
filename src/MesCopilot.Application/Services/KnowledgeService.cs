@@ -154,6 +154,58 @@ public class KnowledgeService : IKnowledgeService
         return true;
     }
 
+    public async Task<IReadOnlyList<DocumentSearchResultDto>> SearchSimilarAsync(
+        string query,
+        int topK = 5,
+        double similarityThreshold = 0.7)
+    {
+        string normalizedQuery = ValidateSearchArguments(query, topK, similarityThreshold);
+        IVectorStore vectorStore = _vectorStore
+            ?? throw new InvalidOperationException("Vector store is not configured.");
+
+        List<DocumentChunk> chunks = await vectorStore.SearchSimilarAsync(
+            normalizedQuery,
+            topK,
+            similarityThreshold);
+
+        if (chunks.Count == 0)
+        {
+            return [];
+        }
+
+        List<int> documentIds = chunks
+            .Select(chunk => chunk.DocumentId)
+            .Distinct()
+            .ToList();
+        Dictionary<int, Document> documentsById = await _context.Documents
+            .AsNoTracking()
+            .Where(document => documentIds.Contains(document.Id))
+            .ToDictionaryAsync(document => document.Id);
+
+        List<DocumentSearchResultDto> results = [];
+        foreach (DocumentChunk chunk in chunks)
+        {
+            if (!documentsById.TryGetValue(chunk.DocumentId, out Document? document))
+            {
+                throw new InvalidOperationException(
+                    $"Search result chunk {chunk.Id} references missing document {chunk.DocumentId}.");
+            }
+
+            results.Add(new DocumentSearchResultDto(
+                chunk.Id,
+                chunk.DocumentId,
+                document.Title,
+                document.FileName,
+                document.Type,
+                chunk.Sequence,
+                chunk.Content,
+                chunk.PageNumber,
+                chunk.SectionTitle));
+        }
+
+        return results;
+    }
+
     private static DocumentDto ToDto(Document document)
     {
         return new DocumentDto(
@@ -184,6 +236,22 @@ public class KnowledgeService : IKnowledgeService
 
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(request.FileSize);
         ArgumentNullException.ThrowIfNull(request.Content);
+    }
+
+    private static string ValidateSearchArguments(string query, int topK, double similarityThreshold)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            throw new ArgumentException("Search query is required.", nameof(query));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(topK);
+        if (similarityThreshold < 0d || similarityThreshold > 1d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(similarityThreshold), "Similarity threshold must be in the range [0, 1].");
+        }
+
+        return query.Trim();
     }
 
     private static int EstimateTokenCount(string text)
