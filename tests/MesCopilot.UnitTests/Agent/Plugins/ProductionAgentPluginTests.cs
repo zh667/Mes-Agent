@@ -29,6 +29,14 @@ public class ProductionAgentPluginTests
     }
 
     [Fact]
+    public async Task GetTodayWorkOrdersTool_InvalidProductionLineId_ShouldThrow()
+    {
+        var tool = new GetTodayWorkOrdersTool(new FakeWorkOrderService());
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => tool.ExecuteAsync(0));
+    }
+
+    [Fact]
     public async Task AnalyzeDelayedOrdersTool_ShouldReturnDelaySummary()
     {
         var service = new FakeWorkOrderService
@@ -45,6 +53,14 @@ public class ProductionAgentPluginTests
         Assert.NotNull(result.Data);
         Assert.Contains("1", result.Explanation);
         Assert.Equal("AnalyzeDelayedOrders", result.Debug?.ToolsCalled?.Single());
+    }
+
+    [Fact]
+    public async Task AnalyzeDelayedOrdersTool_InvalidDateRange_ShouldThrow()
+    {
+        var tool = new AnalyzeDelayedOrdersTool(new FakeWorkOrderService());
+
+        await Assert.ThrowsAsync<ArgumentException>(() => tool.ExecuteAsync(DateTime.UtcNow, DateTime.UtcNow.AddDays(-1)));
     }
 
     [Fact]

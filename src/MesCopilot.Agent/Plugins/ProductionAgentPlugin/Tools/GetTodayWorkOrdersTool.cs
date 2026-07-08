@@ -20,8 +20,13 @@ public class GetTodayWorkOrdersTool
 
     public async Task<FunctionCallResult> ExecuteAsync(int? productionLineId = null, bool debugMode = false)
     {
-        var stopwatch = Stopwatch.StartNew();
-        var workOrders = (await _workOrderService.GetTodayWorkOrdersAsync(productionLineId)).ToList();
+        if (productionLineId.HasValue)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(productionLineId.Value, nameof(productionLineId));
+        }
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        List<Application.Dtos.WorkOrderDto> workOrders = (await _workOrderService.GetTodayWorkOrdersAsync(productionLineId)).ToList();
         stopwatch.Stop();
 
         var data = new

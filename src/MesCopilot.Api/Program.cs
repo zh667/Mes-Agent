@@ -1,6 +1,9 @@
 using MesCopilot.Application;
 using MesCopilot.Api.Hubs;
+using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin;
+using MesCopilot.Agent.Plugins.OeeAgentPlugin;
 using MesCopilot.Agent.Plugins.ProductionAgentPlugin;
+using MesCopilot.Agent.Plugins.QualityAgentPlugin;
 using MesCopilot.Infrastructure;
 using MesCopilot.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +17,9 @@ builder.Services.AddSignalR();
 builder.Services.AddMesCopilotApplication();
 builder.Services.AddMesCopilotInfrastructure(builder.Configuration);
 builder.Services.AddScoped<ProductionAgentPlugin>();
+builder.Services.AddScoped<QualityAgentPlugin>();
+builder.Services.AddScoped<OeeAgentPlugin>();
+builder.Services.AddScoped<KnowledgeAgentPlugin>();
 
 var app = builder.Build();
 

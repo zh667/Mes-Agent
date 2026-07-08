@@ -19,11 +19,16 @@ public class AnalyzeDelayedOrdersTool
 
     public async Task<FunctionCallResult> ExecuteAsync(DateTime? startDate = null, DateTime? endDate = null, bool debugMode = false)
     {
-        var stopwatch = Stopwatch.StartNew();
-        var delayedOrders = (await _workOrderService.GetDelayedWorkOrdersAsync(startDate, endDate)).ToList();
+        if (startDate.HasValue && endDate.HasValue && startDate.Value.Date > endDate.Value.Date)
+        {
+            throw new ArgumentException("Start date must be earlier than or equal to end date.", nameof(startDate));
+        }
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        List<Application.Dtos.WorkOrderDto> delayedOrders = (await _workOrderService.GetDelayedWorkOrdersAsync(startDate, endDate)).ToList();
         stopwatch.Stop();
 
-        var reasons = new Dictionary<string, int>
+        Dictionary<string, int> reasons = new()
         {
             ["Material shortage"] = delayedOrders.Count / 3,
             ["Equipment issue"] = delayedOrders.Count / 3,
