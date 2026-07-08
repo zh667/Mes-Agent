@@ -10,6 +10,7 @@ public static class DependencyInjection
         services.AddScoped<IWorkOrderService, WorkOrderService>();
         services.AddScoped<IEquipmentService, EquipmentService>();
         services.AddScoped<IQualityService, QualityService>();
+        services.AddScoped<IKnowledgeService, KnowledgeService>();
         return services;
     }
 }
