@@ -10,7 +10,7 @@ namespace MesCopilot.Agent.Plugins.KnowledgeAgentPlugin.Tools;
 
 public class SearchDocumentsTool
 {
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(1);
 
     private readonly IKnowledgeService _knowledgeService;
     private readonly IRagAnswerGenerator _answerGenerator;
@@ -145,7 +145,7 @@ public class SearchDocumentsTool
     {
         return string.Join(
             "|",
-            query.ToUpperInvariant(),
+            query,
             topK.ToString(CultureInfo.InvariantCulture),
             similarityThreshold.ToString("R", CultureInfo.InvariantCulture));
     }

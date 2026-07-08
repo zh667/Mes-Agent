@@ -38,6 +38,7 @@ public class TraceBatchTool
                 batchNumber = trace.BatchNumber
             };
         var processSteps = trace.ProductionReports
+            .DistinctBy(report => report.ProcessStepId)
             .Select(report => new
             {
                 id = report.ProcessStepId,
@@ -47,7 +48,6 @@ public class TraceBatchTool
                 report.Quantity,
                 report.QualifiedQuantity
             })
-            .Distinct()
             .ToList();
         var equipment = trace.ProductionReports
             .Select(report => new

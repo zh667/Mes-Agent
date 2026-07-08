@@ -22,6 +22,28 @@ public class QualityAgentPluginTests
     }
 
     [Fact]
+    public async Task TraceBatchTool_ShouldDeduplicateProcessStepsByProcessStepId()
+    {
+        var service = new FakeQualityService
+        {
+            ProductionReports =
+            [
+                new ProductionReportTraceDto(1, "B-001", 1, 7, 2, "op-1", "Operator", DateTime.UtcNow, 10, 9),
+                new ProductionReportTraceDto(2, "B-001", 1, 7, 3, "op-2", "Operator 2", DateTime.UtcNow.AddMinutes(5), 12, 11)
+            ]
+        };
+        var tool = new TraceBatchTool(service);
+
+        var result = await tool.ExecuteAsync("B-001");
+
+        Assert.NotNull(result.Data);
+        string json = System.Text.Json.JsonSerializer.Serialize(result.Data);
+        using System.Text.Json.JsonDocument data = System.Text.Json.JsonDocument.Parse(json);
+        Assert.Equal(1, data.RootElement.GetProperty("processSteps").GetArrayLength());
+        Assert.Equal(7, data.RootElement.GetProperty("processSteps")[0].GetProperty("id").GetInt32());
+    }
+
+    [Fact]
     public async Task TraceBatchTool_EmptyBatchNumber_ShouldThrow()
     {
         var tool = new TraceBatchTool(new FakeQualityService());
@@ -76,6 +98,11 @@ public class QualityAgentPluginTests
 
     private sealed class FakeQualityService : IQualityService
     {
+        public IReadOnlyList<ProductionReportTraceDto> ProductionReports { get; init; } =
+        [
+            new ProductionReportTraceDto(1, "B-001", 1, 7, 2, "op-1", "Operator", DateTime.UtcNow, 10, 9)
+        ];
+
         public Task<IEnumerable<QualityInspectionDto>> GetInspectionsAsync()
         {
             return Task.FromResult<IEnumerable<QualityInspectionDto>>(
@@ -91,9 +118,8 @@ public class QualityAgentPluginTests
 
         public Task<BatchTraceDto> TraceBatchAsync(string batchNumber)
         {
-            var report = new ProductionReportTraceDto(1, batchNumber, 1, 7, 2, "op-1", "Operator", DateTime.UtcNow, 10, 9);
             var inspection = new QualityInspectionDto(1, "QI-001", batchNumber, 1, 7, "qc-1", "QC One", 10, 9, 1, InspectionStatus.Fail, DateTime.UtcNow, "Scratch");
-            return Task.FromResult(new BatchTraceDto(batchNumber, [report], [inspection]));
+            return Task.FromResult(new BatchTraceDto(batchNumber, ProductionReports, [inspection]));
         }
 
         public Task<IEnumerable<DefectAnalysisDto>> AnalyzeDefectsAsync()

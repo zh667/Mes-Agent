@@ -1,9 +1,11 @@
 using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin;
 using MesCopilot.Agent.Caching;
+using MesCopilot.Agent.Models;
 using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin.Tools;
 using MesCopilot.Application.Dtos;
 using MesCopilot.Application.Services;
 using MesCopilot.Domain.Enums;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 
 namespace MesCopilot.UnitTests.Agent.Plugins;
@@ -63,6 +65,38 @@ public class KnowledgeAgentPluginTests
     }
 
     [Fact]
+    public async Task SearchDocumentsTool_CacheKey_ShouldPreserveQueryCasing()
+    {
+        var service = new FakeKnowledgeService();
+        var answerGenerator = new FakeRagAnswerGenerator("Stop the line and inspect the A102 sensor.");
+        var cache = new InMemoryAgentResponseCache();
+        var tool = new SearchDocumentsTool(service, answerGenerator, cache);
+
+        await tool.ExecuteAsync("A102 alarm", topK: 3, similarityThreshold: 0.6);
+        await tool.ExecuteAsync("a102 alarm", topK: 3, similarityThreshold: 0.6);
+
+        Assert.Equal(2, service.SearchCallCount);
+        Assert.Equal(2, answerGenerator.GenerateCallCount);
+    }
+
+    [Fact]
+    public void InMemoryAgentResponseCache_WhenEntryLimitIsExceeded_ShouldEvictOldestEntry()
+    {
+        var cache = new InMemoryAgentResponseCache();
+        var firstResult = new FunctionCallResult { Data = "first" };
+
+        cache.Set("query-0000", firstResult, TimeSpan.FromMinutes(5));
+        for (int index = 1; index <= 1000; index++)
+        {
+            cache.Set($"query-{index:0000}", new FunctionCallResult { Data = index }, TimeSpan.FromMinutes(5));
+        }
+
+        Assert.False(cache.TryGet("query-0000", out _));
+        Assert.True(cache.TryGet("query-1000", out FunctionCallResult latestResult));
+        Assert.Equal(1000, latestResult.Data);
+    }
+
+    [Fact]
     public async Task SearchDocumentsTool_EmptyQuery_ShouldThrow()
     {
         var tool = new SearchDocumentsTool(new FakeKnowledgeService());
@@ -115,6 +149,26 @@ public class KnowledgeAgentPluginTests
         Assert.Equal("KnowledgeAgent", plugin.Name);
         Assert.NotNull(plugin.SearchDocumentsTool);
         Assert.NotNull(plugin.GetSopByCodeTool);
+    }
+
+    [Fact]
+    public async Task KnowledgeAgentPlugin_WhenResolvedFromServices_ShouldUseRegisteredResponseCache()
+    {
+        var service = new FakeKnowledgeService();
+        var services = new ServiceCollection();
+        services.AddSingleton<IKnowledgeService>(service);
+        services.AddSingleton<IAgentResponseCache, InMemoryAgentResponseCache>();
+        services.AddScoped<KnowledgeAgentPlugin>();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+        var plugin = scope.ServiceProvider.GetRequiredService<KnowledgeAgentPlugin>();
+
+        await plugin.SearchDocumentsTool.ExecuteAsync("A102 alarm", topK: 3, similarityThreshold: 0.6);
+        FunctionCallResult second = await plugin.SearchDocumentsTool.ExecuteAsync("A102 alarm", debugMode: true, topK: 3, similarityThreshold: 0.6);
+
+        Assert.Equal(1, service.SearchCallCount);
+        Assert.Equal("Agent.ResponseCache", second.Debug?.DataSource);
     }
 
     private sealed class FakeKnowledgeService : IKnowledgeService
