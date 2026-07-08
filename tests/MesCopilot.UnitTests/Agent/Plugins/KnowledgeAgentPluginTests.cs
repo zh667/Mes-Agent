@@ -83,6 +83,11 @@ public class KnowledgeAgentPluginTests
             throw new NotSupportedException();
         }
 
+        public Task<DocumentDto> UploadDocumentAsync(UploadDocumentRequest request)
+        {
+            throw new NotSupportedException();
+        }
+
         public Task<bool> DeleteAsync(int id)
         {
             throw new NotSupportedException();

@@ -24,3 +24,14 @@ public record CreateDocumentRequest(
     string MimeType,
     string? Description
 );
+
+public record UploadDocumentRequest(
+    string Title,
+    string FileName,
+    string FilePath,
+    DocumentType Type,
+    long FileSize,
+    string MimeType,
+    string? Description,
+    Stream Content
+);

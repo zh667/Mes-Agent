@@ -10,5 +10,7 @@ public interface IKnowledgeService
 
     Task<DocumentDto> CreateDocumentAsync(CreateDocumentRequest request);
 
+    Task<DocumentDto> UploadDocumentAsync(UploadDocumentRequest request);
+
     Task<bool> DeleteAsync(int id);
 }

@@ -1,4 +1,5 @@
 using MesCopilot.Infrastructure.Data;
+using MesCopilot.Infrastructure.DocumentParsers;
 using MesCopilot.Infrastructure.VectorStore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,9 @@ public static class DependencyInjection
         services.AddDbContext<MesDbContext>(options => options.UseNpgsql(connectionString));
         services.AddHttpClient<IEmbeddingClient, OpenAiEmbeddingClient>();
         services.AddScoped<IVectorStore, PgVectorStore>();
+        services.AddSingleton<TextChunker>();
+        services.AddSingleton<IDocumentParser, WordParser>();
+        services.AddSingleton<IDocumentParser, PdfParser>();
 
         return services;
     }
