@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\src\MesCopilot.Infrastructure\MesCopilot.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\MesCopilot.Application\MesCopilot.Application.csproj" />
     <ProjectReference Include="..\..\src\MesCopilot.DeviceSimulator\MesCopilot.DeviceSimulator.csproj" />
+    <ProjectReference Include="..\..\src\MesCopilot.Agent\MesCopilot.Agent.csproj" />
   </ItemGroup>
 
 </Project>

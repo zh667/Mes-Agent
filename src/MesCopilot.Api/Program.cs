@@ -1,5 +1,6 @@
 using MesCopilot.Application;
 using MesCopilot.Api.Hubs;
+using MesCopilot.Agent.Plugins.ProductionAgentPlugin;
 using MesCopilot.Infrastructure;
 using MesCopilot.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
 builder.Services.AddMesCopilotApplication();
 builder.Services.AddMesCopilotInfrastructure(builder.Configuration);
+builder.Services.AddScoped<ProductionAgentPlugin>();
 
 var app = builder.Build();
 

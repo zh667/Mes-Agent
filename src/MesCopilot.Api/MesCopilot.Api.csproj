@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MesCopilot.Infrastructure\MesCopilot.Infrastructure.csproj" />
     <ProjectReference Include="..\MesCopilot.Application\MesCopilot.Application.csproj" />
+    <ProjectReference Include="..\MesCopilot.Agent\MesCopilot.Agent.csproj" />
   </ItemGroup>
 
 </Project>
