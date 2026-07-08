@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MesCopilot.Api\MesCopilot.Api.csproj" />
+    <ProjectReference Include="..\MesCopilot.Application\MesCopilot.Application.csproj" />
     <ProjectReference Include="..\MesCopilot.Domain\MesCopilot.Domain.csproj" />
     <ProjectReference Include="..\MesCopilot.Infrastructure\MesCopilot.Infrastructure.csproj" />
   </ItemGroup>

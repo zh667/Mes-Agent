@@ -1,4 +1,4 @@
-using MesCopilot.Api.Hubs;
+using MesCopilot.Application.Dtos.Realtime;
 using MesCopilot.DeviceSimulator.Services;
 using MesCopilot.Domain.Entities.Equipment;
 using MesCopilot.Domain.Entities.Production;

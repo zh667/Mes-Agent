@@ -1,3 +1,4 @@
+using MesCopilot.Application.Dtos.Realtime;
 using Microsoft.AspNetCore.SignalR;
 
 namespace MesCopilot.Api.Hubs;
@@ -58,11 +59,3 @@ public class EquipmentHub : Hub
         return $"line-{lineId}";
     }
 }
-
-public record EquipmentStatusUpdate(
-    int EquipmentId,
-    string EquipmentCode,
-    int? ProductionLineId,
-    string State,
-    DateTime Timestamp
-);
