@@ -1,0 +1,1058 @@
+﻿# MES Copilot Phase 1 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal**: Build MES Copilot MVP with 4 AI Agents (Production, Quality, OEE, Knowledge) integrated with BotSharp, complete MES data model, device simulator, RAG knowledge base, and React frontend.
+
+**Architecture**: Single-repo fusion architecture - ASP.NET Core backend with BotSharp plugins, PostgreSQL with pgvector, SignalR real-time updates, Next.js frontend.
+
+**Tech Stack**:
+- Backend: ASP.NET Core 8.0, EF Core 8.0, PostgreSQL 16 + pgvector
+- Agent: BotSharp (NuGet package)
+- Real-time: SignalR
+- Documents: iTextSharp (PDF), DocumentFormat.OpenXml (Word/Excel)
+- Frontend: Next.js 14, React 18, shadcn/ui, TanStack Query
+- Testing: xUnit, Moq, FluentAssertions, Testcontainers
+
+## Global Constraints
+
+- .NET SDK version: 8.0 or higher
+- Node.js version: 18.0 or higher
+- PostgreSQL version: 16 with pgvector extension
+- All entity names follow PascalCase
+- All async methods must have `Async` suffix
+- All database operations must use async/await
+- All Agent tools must return `FunctionCallResult` with structured data + explanation
+- Test coverage must be > 70%
+- Agent response time must be < 3 seconds (excluding LLM call)
+- No user authentication in Phase 1 (shared data)
+
+---
+
+## Phase 1: Project Scaffolding and Database Design
+
+### Task 1.1: Create Solution Structure
+
+**Files:**
+- Create: `MesCopilot.sln`
+- Create: `src/MesCopilot.Domain/MesCopilot.Domain.csproj`
+- Create: `src/MesCopilot.Infrastructure/MesCopilot.Infrastructure.csproj`
+- Create: `src/MesCopilot.Application/MesCopilot.Application.csproj`
+- Create: `src/MesCopilot.Agent/MesCopilot.Agent.csproj`
+- Create: `src/MesCopilot.Api/MesCopilot.Api.csproj`
+- Create: `src/MesCopilot.DeviceSimulator/MesCopilot.DeviceSimulator.csproj`
+- Create: `tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj`
+- Create: `tests/MesCopilot.IntegrationTests/MesCopilot.IntegrationTests.csproj`
+- Create: `.gitignore`
+- Create: `Directory.Build.props`
+
+**Interfaces:**
+- Consumes: None
+- Produces: Solution structure with 7 projects
+
+- [ ] **Step 1: Create solution file**
+
+```bash
+cd E:\code\AI\mes-agent
+dotnet new sln -n MesCopilot
+```
+
+Expected: `MesCopilot.sln` created
+
+- [ ] **Step 2: Create directory structure**
+
+```bash
+mkdir -p src/MesCopilot.Domain src/MesCopilot.Infrastructure src/MesCopilot.Application src/MesCopilot.Agent src/MesCopilot.Api src/MesCopilot.DeviceSimulator tests/MesCopilot.UnitTests tests/MesCopilot.IntegrationTests
+```
+
+Expected: All directories created
+
+- [ ] **Step 3: Create Domain project (Class Library)**
+
+```bash
+cd src/MesCopilot.Domain
+dotnet new classlib -f net8.0
+cd ../..
+dotnet sln add src/MesCopilot.Domain/MesCopilot.Domain.csproj
+```
+
+Expected: Domain project added to solution
+
+- [ ] **Step 4: Create Infrastructure project (Class Library)**
+
+```bash
+cd src/MesCopilot.Infrastructure
+dotnet new classlib -f net8.0
+cd ../..
+dotnet sln add src/MesCopilot.Infrastructure/MesCopilot.Infrastructure.csproj
+```
+
+Expected: Infrastructure project added to solution
+
+- [ ] **Step 5: Create Application project (Class Library)**
+
+```bash
+cd src/MesCopilot.Application
+dotnet new classlib -f net8.0
+cd ../..
+dotnet sln add src/MesCopilot.Application/MesCopilot.Application.csproj
+```
+
+Expected: Application project added to solution
+
+- [ ] **Step 6: Create Agent project (Class Library)**
+
+```bash
+cd src/MesCopilot.Agent
+dotnet new classlib -f net8.0
+cd ../..
+dotnet sln add src/MesCopilot.Agent/MesCopilot.Agent.csproj
+```
+
+Expected: Agent project added to solution
+
+- [ ] **Step 7: Create API project (Web API)**
+
+```bash
+cd src/MesCopilot.Api
+dotnet new webapi -f net8.0
+cd ../..
+dotnet sln add src/MesCopilot.Api/MesCopilot.Api.csproj
+```
+
+Expected: API project added to solution
+
+- [ ] **Step 8: Create Device Simulator project (Worker Service)**
+
+```bash
+cd src/MesCopilot.DeviceSimulator
+dotnet new worker -f net8.0
+cd ../..
+dotnet sln add src/MesCopilot.DeviceSimulator/MesCopilot.DeviceSimulator.csproj
+```
+
+Expected: DeviceSimulator project added to solution
+
+- [ ] **Step 9: Create Unit Tests project (xUnit)**
+
+```bash
+cd tests/MesCopilot.UnitTests
+dotnet new xunit -f net8.0
+cd ../..
+dotnet sln add tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj
+```
+
+Expected: UnitTests project added to solution
+
+- [ ] **Step 10: Create Integration Tests project (xUnit)**
+
+```bash
+cd tests/MesCopilot.IntegrationTests
+dotnet new xunit -f net8.0
+cd ../..
+dotnet sln add tests/MesCopilot.IntegrationTests/MesCopilot.IntegrationTests.csproj
+```
+
+Expected: IntegrationTests project added to solution
+
+- [ ] **Step 11: Create .gitignore file**
+
+```bash
+cat > .gitignore << 'EOF'
+## Ignore Visual Studio temporary files, build results, and
+## files generated by popular Visual Studio add-ons.
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options directory
+.vs/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/*
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# appsettings with secrets
+appsettings.Development.json
+appsettings.Local.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+EOF
+```
+
+Expected: .gitignore created
+
+- [ ] **Step 12: Create Directory.Build.props for common settings**
+
+```bash
+cat > Directory.Build.props << 'EOF'
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>
+EOF
+```
+
+Expected: Directory.Build.props created
+
+- [ ] **Step 13: Verify solution builds**
+
+```bash
+dotnet build
+```
+
+Expected: All projects build successfully
+
+- [ ] **Step 14: Commit**
+
+```bash
+git add .
+git commit -m "chore: initialize solution structure with 7 projects
+
+- Domain, Infrastructure, Application, Agent, Api, DeviceSimulator
+- UnitTests and IntegrationTests
+- .gitignore and Directory.Build.props"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 1.2: Define Domain Enums
+
+**Files:**
+- Create: `src/MesCopilot.Domain/Enums/WorkOrderStatus.cs`
+- Create: `src/MesCopilot.Domain/Enums/InspectionStatus.cs`
+- Create: `src/MesCopilot.Domain/Enums/EquipmentState.cs`
+- Create: `src/MesCopilot.Domain/Enums/DocumentType.cs`
+
+**Interfaces:**
+- Consumes: None
+- Produces: 4 enum types for domain model
+
+
+- [ ] **Step 1: Write test for WorkOrderStatus enum**
+
+Create file `tests/MesCopilot.UnitTests/Domain/Enums/WorkOrderStatusTests.cs`:
+
+```csharp
+using MesCopilot.Domain.Enums;
+using Xunit;
+
+namespace MesCopilot.UnitTests.Domain.Enums;
+
+public class WorkOrderStatusTests
+{
+    [Fact]
+    public void WorkOrderStatus_ShouldHaveAllRequiredValues()
+    {
+        // Arrange & Act
+        var values = Enum.GetValues<WorkOrderStatus>();
+        
+        // Assert
+        Assert.Contains(WorkOrderStatus.NotScheduled, values);
+        Assert.Contains(WorkOrderStatus.Scheduled, values);
+        Assert.Contains(WorkOrderStatus.InProgress, values);
+        Assert.Contains(WorkOrderStatus.Paused, values);
+        Assert.Contains(WorkOrderStatus.Completed, values);
+        Assert.Contains(WorkOrderStatus.Closed, values);
+    }
+
+    [Theory]
+    [InlineData(WorkOrderStatus.NotScheduled, 0)]
+    [InlineData(WorkOrderStatus.Scheduled, 1)]
+    [InlineData(WorkOrderStatus.InProgress, 2)]
+    [InlineData(WorkOrderStatus.Paused, 3)]
+    [InlineData(WorkOrderStatus.Completed, 4)]
+    [InlineData(WorkOrderStatus.Closed, 5)]
+    public void WorkOrderStatus_ShouldHaveCorrectValues(WorkOrderStatus status, int expectedValue)
+    {
+        // Assert
+        Assert.Equal(expectedValue, (int)status);
+    }
+}
+```
+
+- [ ] **Step 2: Add project reference to Domain**
+
+```bash
+cd tests/MesCopilot.UnitTests
+dotnet add reference ../../src/MesCopilot.Domain/MesCopilot.Domain.csproj
+cd ../..
+```
+
+Expected: Reference added successfully
+
+- [ ] **Step 3: Run test to verify it fails**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj --filter "FullyQualifiedName~WorkOrderStatusTests"
+```
+
+Expected: FAIL - WorkOrderStatus type not found
+
+- [ ] **Step 4: Create WorkOrderStatus enum**
+
+Create file `src/MesCopilot.Domain/Enums/WorkOrderStatus.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Enums;
+
+/// <summary>
+/// 工单状态
+/// </summary>
+public enum WorkOrderStatus
+{
+    /// <summary>
+    /// 未排程
+    /// </summary>
+    NotScheduled = 0,
+    
+    /// <summary>
+    /// 已排程
+    /// </summary>
+    Scheduled = 1,
+    
+    /// <summary>
+    /// 生产中
+    /// </summary>
+    InProgress = 2,
+    
+    /// <summary>
+    /// 暂停
+    /// </summary>
+    Paused = 3,
+    
+    /// <summary>
+    /// 完工
+    /// </summary>
+    Completed = 4,
+    
+    /// <summary>
+    /// 关闭
+    /// </summary>
+    Closed = 5
+}
+```
+
+- [ ] **Step 5: Run test to verify it passes**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj --filter "FullyQualifiedName~WorkOrderStatusTests"
+```
+
+Expected: PASS - All tests green
+
+- [ ] **Step 6: Create InspectionStatus enum**
+
+Create file `src/MesCopilot.Domain/Enums/InspectionStatus.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Enums;
+
+/// <summary>
+/// 质检状态
+/// </summary>
+public enum InspectionStatus
+{
+    /// <summary>
+    /// 待检
+    /// </summary>
+    Pending = 0,
+    
+    /// <summary>
+    /// 合格
+    /// </summary>
+    Pass = 1,
+    
+    /// <summary>
+    /// 不合格（需返工或报废）
+    /// </summary>
+    Fail = 2
+}
+```
+
+- [ ] **Step 7: Create EquipmentState enum**
+
+Create file `src/MesCopilot.Domain/Enums/EquipmentState.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Enums;
+
+/// <summary>
+/// 设备状态
+/// </summary>
+public enum EquipmentState
+{
+    /// <summary>
+    /// 运行
+    /// </summary>
+    Running = 0,
+    
+    /// <summary>
+    /// 待机
+    /// </summary>
+    Idle = 1,
+    
+    /// <summary>
+    /// 报警
+    /// </summary>
+    Alarm = 2,
+    
+    /// <summary>
+    /// 维修
+    /// </summary>
+    Maintenance = 3,
+    
+    /// <summary>
+    /// 离线
+    /// </summary>
+    Offline = 4
+}
+```
+
+- [ ] **Step 8: Create DocumentType enum**
+
+Create file `src/MesCopilot.Domain/Enums/DocumentType.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Enums;
+
+/// <summary>
+/// 文档类型
+/// </summary>
+public enum DocumentType
+{
+    /// <summary>
+    /// 标准作业程序
+    /// </summary>
+    Sop = 0,
+    
+    /// <summary>
+    /// 维修手册
+    /// </summary>
+    MaintenanceManual = 1,
+    
+    /// <summary>
+    /// 工艺文件
+    /// </summary>
+    ProcessDocument = 2,
+    
+    /// <summary>
+    /// 异常处理规范
+    /// </summary>
+    ExceptionHandling = 3
+}
+```
+
+- [ ] **Step 9: Build to verify all enums compile**
+
+```bash
+dotnet build src/MesCopilot.Domain/MesCopilot.Domain.csproj
+```
+
+Expected: Build succeeded
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add src/MesCopilot.Domain/Enums/
+git add tests/MesCopilot.UnitTests/Domain/
+git commit -m "feat(domain): add core enums for work order, inspection, equipment, and document types
+
+- WorkOrderStatus: NotScheduled -> Closed
+- InspectionStatus: Pending, Pass, Fail
+- EquipmentState: Running, Idle, Alarm, Maintenance, Offline
+- DocumentType: SOP, MaintenanceManual, ProcessDocument, ExceptionHandling
+- Add unit tests for enum values"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 1.3: Define Product Management Entities
+
+**Files:**
+- Create: `src/MesCopilot.Domain/Entities/Products/Product.cs`
+- Create: `src/MesCopilot.Domain/Entities/Products/Material.cs`
+- Create: `src/MesCopilot.Domain/Entities/Products/Bom.cs`
+- Create: `src/MesCopilot.Domain/Entities/Products/BomItem.cs`
+- Create: `tests/MesCopilot.UnitTests/Domain/Entities/Products/ProductTests.cs`
+
+**Interfaces:**
+- Consumes: None
+- Produces: Product, Material, Bom, BomItem entities with navigation properties
+
+- [ ] **Step 1: Write test for Product entity**
+
+Create file `tests/MesCopilot.UnitTests/Domain/Entities/Products/ProductTests.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Products;
+using Xunit;
+
+namespace MesCopilot.UnitTests.Domain.Entities.Products;
+
+public class ProductTests
+{
+    [Fact]
+    public void Product_ShouldHaveRequiredProperties()
+    {
+        // Arrange & Act
+        var product = new Product
+        {
+            Id = 1,
+            Code = "PROD-001",
+            Name = "产品A",
+            Specification = "规格说明",
+            Unit = "个",
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        // Assert
+        Assert.Equal(1, product.Id);
+        Assert.Equal("PROD-001", product.Code);
+        Assert.Equal("产品A", product.Name);
+        Assert.Equal("规格说明", product.Specification);
+        Assert.Equal("个", product.Unit);
+        Assert.NotEqual(default, product.CreatedAt);
+    }
+
+    [Fact]
+    public void Product_ShouldInitializeCollections()
+    {
+        // Arrange & Act
+        var product = new Product();
+        
+        // Assert
+        Assert.NotNull(product.Boms);
+        Assert.Empty(product.Boms);
+    }
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj --filter "FullyQualifiedName~ProductTests"
+```
+
+Expected: FAIL - Product type not found
+
+- [ ] **Step 3: Create Product entity**
+
+Create file `src/MesCopilot.Domain/Entities/Products/Product.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Products;
+
+/// <summary>
+/// 产品主数据
+/// </summary>
+public class Product
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 产品编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 产品名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 规格说明
+    /// </summary>
+    public string? Specification { get; set; }
+    
+    /// <summary>
+    /// 单位
+    /// </summary>
+    public string Unit { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTime? UpdatedAt { get; set; }
+    
+    // Navigation properties
+    public ICollection<Bom> Boms { get; set; } = new List<Bom>();
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj --filter "FullyQualifiedName~ProductTests"
+```
+
+Expected: PASS - All tests green
+
+
+- [ ] **Step 5: Create Material entity**
+
+Create file `src/MesCopilot.Domain/Entities/Products/Material.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Products;
+
+/// <summary>
+/// 物料主数据
+/// </summary>
+public class Material
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 物料编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 物料名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 规格型号
+    /// </summary>
+    public string? Specification { get; set; }
+    
+    /// <summary>
+    /// 单位
+    /// </summary>
+    public string Unit { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 库存数量
+    /// </summary>
+    public decimal StockQuantity { get; set; }
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTime? UpdatedAt { get; set; }
+    
+    // Navigation properties
+    public ICollection<BomItem> BomItems { get; set; } = new List<BomItem>();
+}
+```
+
+- [ ] **Step 6: Create Bom entity**
+
+Create file `src/MesCopilot.Domain/Entities/Products/Bom.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Products;
+
+/// <summary>
+/// 物料清单（BOM）
+/// </summary>
+public class Bom
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// BOM编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 产品ID
+    /// </summary>
+    public int ProductId { get; set; }
+    
+    /// <summary>
+    /// 版本号
+    /// </summary>
+    public string Version { get; set; } = "1.0";
+    
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTime? UpdatedAt { get; set; }
+    
+    // Navigation properties
+    public Product Product { get; set; } = null!;
+    public ICollection<BomItem> BomItems { get; set; } = new List<BomItem>();
+}
+```
+
+- [ ] **Step 7: Create BomItem entity**
+
+Create file `src/MesCopilot.Domain/Entities/Products/BomItem.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Products;
+
+/// <summary>
+/// BOM明细
+/// </summary>
+public class BomItem
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// BOM ID
+    /// </summary>
+    public int BomId { get; set; }
+    
+    /// <summary>
+    /// 物料ID
+    /// </summary>
+    public int MaterialId { get; set; }
+    
+    /// <summary>
+    /// 用量
+    /// </summary>
+    public decimal Quantity { get; set; }
+    
+    /// <summary>
+    /// 单位
+    /// </summary>
+    public string Unit { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 序号
+    /// </summary>
+    public int Sequence { get; set; }
+    
+    // Navigation properties
+    public Bom Bom { get; set; } = null!;
+    public Material Material { get; set; } = null!;
+}
+```
+
+- [ ] **Step 8: Build to verify all entities compile**
+
+```bash
+dotnet build src/MesCopilot.Domain/MesCopilot.Domain.csproj
+```
+
+Expected: Build succeeded
+
+- [ ] **Step 9: Run all tests to verify**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj
+```
+
+Expected: All tests pass
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add src/MesCopilot.Domain/Entities/Products/
+git add tests/MesCopilot.UnitTests/Domain/Entities/Products/
+git commit -m "feat(domain): add product management entities
+
+- Product: 产品主数据
+- Material: 物料主数据
+- Bom: 物料清单
+- BomItem: BOM明细
+- Add navigation properties for relationships
+- Add unit tests for Product entity"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 1.4: Define Production Entities
+
+**Files:**
+- Create: `src/MesCopilot.Domain/Entities/Production/WorkOrder.cs`
+- Create: `src/MesCopilot.Domain/Entities/Production/WorkOrderOperation.cs`
+- Create: `src/MesCopilot.Domain/Entities/Production/ProductionReport.cs`
+- Create: `src/MesCopilot.Domain/Entities/Production/ProductionLine.cs`
+- Create: `src/MesCopilot.Domain/Entities/Production/ProcessRoute.cs`
+- Create: `src/MesCopilot.Domain/Entities/Production/ProcessStep.cs`
+- Create: `src/MesCopilot.Domain/Entities/Production/Workstation.cs`
+
+**Interfaces:**
+- Consumes: WorkOrderStatus enum, Product entity
+- Produces: WorkOrder, ProductionReport, ProductionLine, ProcessRoute, ProcessStep, Workstation entities
+
+- [ ] **Step 1: Create WorkOrder entity with test**
+
+Create file `tests/MesCopilot.UnitTests/Domain/Entities/Production/WorkOrderTests.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Production;
+using MesCopilot.Domain.Enums;
+using Xunit;
+
+namespace MesCopilot.UnitTests.Domain.Entities.Production;
+
+public class WorkOrderTests
+{
+    [Fact]
+    public void WorkOrder_ShouldCalculateProgress()
+    {
+        // Arrange
+        var workOrder = new WorkOrder
+        {
+            PlannedQuantity = 1000,
+            CompletedQuantity = 750
+        };
+        
+        // Act
+        var progress = workOrder.Progress;
+        
+        // Assert
+        Assert.Equal(0.75m, progress);
+    }
+
+    [Fact]
+    public void WorkOrder_Progress_ShouldReturnZero_WhenPlannedQuantityIsZero()
+    {
+        // Arrange
+        var workOrder = new WorkOrder
+        {
+            PlannedQuantity = 0,
+            CompletedQuantity = 100
+        };
+        
+        // Act
+        var progress = workOrder.Progress;
+        
+        // Assert
+        Assert.Equal(0m, progress);
+    }
+
+    [Fact]
+    public void WorkOrder_ShouldInitializeWithNotScheduledStatus()
+    {
+        // Arrange & Act
+        var workOrder = new WorkOrder();
+        
+        // Assert
+        Assert.Equal(WorkOrderStatus.NotScheduled, workOrder.Status);
+    }
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj --filter "FullyQualifiedName~WorkOrderTests"
+```
+
+Expected: FAIL - WorkOrder type not found
+
+- [ ] **Step 3: Create WorkOrder entity**
+
+Create file `src/MesCopilot.Domain/Entities/Production/WorkOrder.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Products;
+using MesCopilot.Domain.Enums;
+
+namespace MesCopilot.Domain.Entities.Production;
+
+/// <summary>
+/// 生产工单
+/// </summary>
+public class WorkOrder
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 工单编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 产品ID
+    /// </summary>
+    public int ProductId { get; set; }
+    
+    /// <summary>
+    /// 产线ID
+    /// </summary>
+    public int ProductionLineId { get; set; }
+    
+    /// <summary>
+    /// 计划数量
+    /// </summary>
+    public int PlannedQuantity { get; set; }
+    
+    /// <summary>
+    /// 完工数量
+    /// </summary>
+    public int CompletedQuantity { get; set; }
+    
+    /// <summary>
+    /// 合格数量
+    /// </summary>
+    public int QualifiedQuantity { get; set; }
+    
+    /// <summary>
+    /// 工单状态
+    /// </summary>
+    public WorkOrderStatus Status { get; set; } = WorkOrderStatus.NotScheduled;
+    
+    /// <summary>
+    /// 计划开始时间
+    /// </summary>
+    public DateTime PlannedStartTime { get; set; }
+    
+    /// <summary>
+    /// 计划结束时间
+    /// </summary>
+    public DateTime PlannedEndTime { get; set; }
+    
+    /// <summary>
+    /// 实际开始时间
+    /// </summary>
+    public DateTime? ActualStartTime { get; set; }
+    
+    /// <summary>
+    /// 实际结束时间
+    /// </summary>
+    public DateTime? ActualEndTime { get; set; }
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTime? UpdatedAt { get; set; }
+    
+    /// <summary>
+    /// 进度（0-1）
+    /// </summary>
+    public decimal Progress => PlannedQuantity > 0 
+        ? (decimal)CompletedQuantity / PlannedQuantity 
+        : 0m;
+    
+    // Navigation properties
+    public Product Product { get; set; } = null!;
+    public ProductionLine ProductionLine { get; set; } = null!;
+    public ICollection<WorkOrderOperation> Operations { get; set; } = new List<WorkOrderOperation>();
+    public ICollection<ProductionReport> ProductionReports { get; set; } = new List<ProductionReport>();
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj --filter "FullyQualifiedName~WorkOrderTests"
+```
+
+Expected: PASS - All tests green
+
+- [ ] **Step 5: Create ProductionLine entity**
+
+Create file `src/MesCopilot.Domain/Entities/Production/ProductionLine.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Production;
+
+/// <summary>
+/// 生产线
+/// </summary>
+public class ProductionLine
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 产线编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 产线名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string? Description { get; set; }
+    
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    /// <summary>
+    /// 更新时间
+    /// </summary>
+    public DateTime? UpdatedAt { get; set; }
+    
+    // Navigation properties
+    public ICollection<WorkOrder> WorkOrders { get; set; } = new List<WorkOrder>();
+}
+```
+
