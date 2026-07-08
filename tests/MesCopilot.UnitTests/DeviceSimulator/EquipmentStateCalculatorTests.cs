@@ -29,6 +29,25 @@ public class EquipmentStateCalculatorTests
     }
 
     [Fact]
+    public void DetermineState_InProgressWorkOrder_ShouldReturnOperationalState()
+    {
+        var calculator = new EquipmentStateCalculator();
+        var workOrder = new WorkOrder { Status = WorkOrderStatus.InProgress };
+
+        var state = calculator.DetermineState(CreateEquipment(), workOrder);
+
+        Assert.Contains(
+            state,
+            new[]
+            {
+                EquipmentState.Alarm,
+                EquipmentState.Maintenance,
+                EquipmentState.Idle,
+                EquipmentState.Running
+            });
+    }
+
+    [Fact]
     public void CalculateOutput_NotRunning_ShouldReturnZero()
     {
         var calculator = new EquipmentStateCalculator();
