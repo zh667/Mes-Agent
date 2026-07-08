@@ -1056,3 +1056,3712 @@ public class ProductionLine
 }
 ```
 
+
+- [ ] **Step 6: Create ProcessRoute entity**
+
+Create file `src/MesCopilot.Domain/Entities/Production/ProcessRoute.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Products;
+
+namespace MesCopilot.Domain.Entities.Production;
+
+/// <summary>
+/// 工艺路线
+/// </summary>
+public class ProcessRoute
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 路线编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 路线名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 产品ID
+    /// </summary>
+    public int ProductId { get; set; }
+    
+    /// <summary>
+    /// 版本号
+    /// </summary>
+    public string Version { get; set; } = "1.0";
+    
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    // Navigation properties
+    public Product Product { get; set; } = null!;
+    public ICollection<ProcessStep> ProcessSteps { get; set; } = new List<ProcessStep>();
+}
+```
+
+- [ ] **Step 7: Create ProcessStep entity**
+
+Create file `src/MesCopilot.Domain/Entities/Production/ProcessStep.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Production;
+
+/// <summary>
+/// 工序定义
+/// </summary>
+public class ProcessStep
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 工序编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 工序名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 工艺路线ID
+    /// </summary>
+    public int ProcessRouteId { get; set; }
+    
+    /// <summary>
+    /// 工位ID
+    /// </summary>
+    public int? WorkstationId { get; set; }
+    
+    /// <summary>
+    /// 序号
+    /// </summary>
+    public int Sequence { get; set; }
+    
+    /// <summary>
+    /// 标准工时（分钟）
+    /// </summary>
+    public decimal StandardTime { get; set; }
+    
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string? Description { get; set; }
+    
+    // Navigation properties
+    public ProcessRoute ProcessRoute { get; set; } = null!;
+    public Workstation? Workstation { get; set; }
+}
+```
+
+- [ ] **Step 8: Create Workstation entity**
+
+Create file `src/MesCopilot.Domain/Entities/Production/Workstation.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Production;
+
+/// <summary>
+/// 工位/工作中心
+/// </summary>
+public class Workstation
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 工位编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 工位名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 产线ID
+    /// </summary>
+    public int ProductionLineId { get; set; }
+    
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string? Description { get; set; }
+    
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+    
+    // Navigation properties
+    public ProductionLine ProductionLine { get; set; } = null!;
+    public ICollection<ProcessStep> ProcessSteps { get; set; } = new List<ProcessStep>();
+}
+```
+
+- [ ] **Step 9: Create WorkOrderOperation entity**
+
+Create file `src/MesCopilot.Domain/Entities/Production/WorkOrderOperation.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Production;
+
+/// <summary>
+/// 工单工序
+/// </summary>
+public class WorkOrderOperation
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 工单ID
+    /// </summary>
+    public int WorkOrderId { get; set; }
+    
+    /// <summary>
+    /// 工序ID
+    /// </summary>
+    public int ProcessStepId { get; set; }
+    
+    /// <summary>
+    /// 序号
+    /// </summary>
+    public int Sequence { get; set; }
+    
+    /// <summary>
+    /// 计划开始时间
+    /// </summary>
+    public DateTime PlannedStartTime { get; set; }
+    
+    /// <summary>
+    /// 计划结束时间
+    /// </summary>
+    public DateTime PlannedEndTime { get; set; }
+    
+    /// <summary>
+    /// 实际开始时间
+    /// </summary>
+    public DateTime? ActualStartTime { get; set; }
+    
+    /// <summary>
+    /// 实际结束时间
+    /// </summary>
+    public DateTime? ActualEndTime { get; set; }
+    
+    /// <summary>
+    /// 完工数量
+    /// </summary>
+    public int CompletedQuantity { get; set; }
+    
+    // Navigation properties
+    public WorkOrder WorkOrder { get; set; } = null!;
+    public ProcessStep ProcessStep { get; set; } = null!;
+}
+```
+
+- [ ] **Step 10: Create ProductionReport entity**
+
+Create file `src/MesCopilot.Domain/Entities/Production/ProductionReport.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Production;
+
+/// <summary>
+/// 报工记录
+/// </summary>
+public class ProductionReport
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 批次号（全局唯一）
+    /// </summary>
+    public string BatchNumber { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 工单ID
+    /// </summary>
+    public int WorkOrderId { get; set; }
+    
+    /// <summary>
+    /// 工序ID
+    /// </summary>
+    public int ProcessStepId { get; set; }
+    
+    /// <summary>
+    /// 设备ID
+    /// </summary>
+    public int EquipmentId { get; set; }
+    
+    /// <summary>
+    /// 操作人员ID（暂用字符串）
+    /// </summary>
+    public string OperatorId { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 操作人员姓名
+    /// </summary>
+    public string OperatorName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 报工时间
+    /// </summary>
+    public DateTime Timestamp { get; set; }
+    
+    /// <summary>
+    /// 数量
+    /// </summary>
+    public int Quantity { get; set; }
+    
+    /// <summary>
+    /// 合格数量
+    /// </summary>
+    public int QualifiedQuantity { get; set; }
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    // Navigation properties
+    public WorkOrder WorkOrder { get; set; } = null!;
+    public ProcessStep ProcessStep { get; set; } = null!;
+}
+```
+
+- [ ] **Step 11: Build to verify all entities compile**
+
+```bash
+dotnet build src/MesCopilot.Domain/MesCopilot.Domain.csproj
+```
+
+Expected: Build succeeded
+
+- [ ] **Step 12: Commit**
+
+```bash
+git add src/MesCopilot.Domain/Entities/Production/
+git add tests/MesCopilot.UnitTests/Domain/Entities/Production/
+git commit -m "feat(domain): add production entities
+
+- WorkOrder: 生产工单 with status flow
+- ProductionLine: 生产线
+- ProcessRoute: 工艺路线
+- ProcessStep: 工序定义
+- Workstation: 工位/工作中心
+- WorkOrderOperation: 工单工序
+- ProductionReport: 报工记录（支持追溯）
+- Add Progress calculation in WorkOrder
+- Add unit tests for WorkOrder"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 1.5: Define Quality and Equipment Entities
+
+**Files:**
+- Create: `src/MesCopilot.Domain/Entities/Quality/QualityInspection.cs`
+- Create: `src/MesCopilot.Domain/Entities/Quality/DefectRecord.cs`
+- Create: `src/MesCopilot.Domain/Entities/Quality/DefectType.cs`
+- Create: `src/MesCopilot.Domain/Entities/Equipment/Equipment.cs`
+- Create: `src/MesCopilot.Domain/Entities/Equipment/EquipmentStatus.cs`
+- Create: `src/MesCopilot.Domain/Entities/Equipment/EquipmentAlarm.cs`
+- Create: `src/MesCopilot.Domain/Entities/Equipment/DowntimeRecord.cs`
+
+**Interfaces:**
+- Consumes: InspectionStatus enum, EquipmentState enum, ProductionReport entity
+- Produces: Quality and Equipment entities for MES data model
+
+- [ ] **Step 1: Create QualityInspection entity**
+
+Create file `src/MesCopilot.Domain/Entities/Quality/QualityInspection.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Production;
+using MesCopilot.Domain.Enums;
+
+namespace MesCopilot.Domain.Entities.Quality;
+
+/// <summary>
+/// 质检记录
+/// </summary>
+public class QualityInspection
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 检验单号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 批次号
+    /// </summary>
+    public string BatchNumber { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 工单ID
+    /// </summary>
+    public int WorkOrderId { get; set; }
+    
+    /// <summary>
+    /// 工序ID
+    /// </summary>
+    public int ProcessStepId { get; set; }
+    
+    /// <summary>
+    /// 检验员ID
+    /// </summary>
+    public string InspectorId { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 检验员姓名
+    /// </summary>
+    public string InspectorName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 检验数量
+    /// </summary>
+    public int InspectedQuantity { get; set; }
+    
+    /// <summary>
+    /// 合格数量
+    /// </summary>
+    public int PassedQuantity { get; set; }
+    
+    /// <summary>
+    /// 不合格数量
+    /// </summary>
+    public int FailedQuantity { get; set; }
+    
+    /// <summary>
+    /// 检验状态
+    /// </summary>
+    public InspectionStatus Status { get; set; }
+    
+    /// <summary>
+    /// 检验时间
+    /// </summary>
+    public DateTime InspectionTime { get; set; }
+    
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remarks { get; set; }
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    // Navigation properties
+    public WorkOrder WorkOrder { get; set; } = null!;
+    public ProcessStep ProcessStep { get; set; } = null!;
+    public ICollection<DefectRecord> DefectRecords { get; set; } = new List<DefectRecord>();
+}
+```
+
+- [ ] **Step 2: Create DefectType entity**
+
+Create file `src/MesCopilot.Domain/Entities/Quality/DefectType.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Quality;
+
+/// <summary>
+/// 不良类型
+/// </summary>
+public class DefectType
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 类型编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 类型名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string? Description { get; set; }
+    
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+    
+    // Navigation properties
+    public ICollection<DefectRecord> DefectRecords { get; set; } = new List<DefectRecord>();
+}
+```
+
+
+- [ ] **Step 3: Create DefectRecord entity**
+
+Create file `src/MesCopilot.Domain/Entities/Quality/DefectRecord.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Quality;
+
+/// <summary>
+/// 不良记录
+/// </summary>
+public class DefectRecord
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 质检记录ID
+    /// </summary>
+    public int QualityInspectionId { get; set; }
+    
+    /// <summary>
+    /// 不良类型ID
+    /// </summary>
+    public int DefectTypeId { get; set; }
+    
+    /// <summary>
+    /// 不良数量
+    /// </summary>
+    public int Quantity { get; set; }
+    
+    /// <summary>
+    /// 处理方式（返工/报废）
+    /// </summary>
+    public string? DisposalMethod { get; set; }
+    
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string? Description { get; set; }
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    // Navigation properties
+    public QualityInspection QualityInspection { get; set; } = null!;
+    public DefectType DefectType { get; set; } = null!;
+}
+```
+
+- [ ] **Step 4: Create Equipment entity**
+
+Create file `src/MesCopilot.Domain/Entities/Equipment/Equipment.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Production;
+
+namespace MesCopilot.Domain.Entities.Equipment;
+
+/// <summary>
+/// 设备主数据
+/// </summary>
+public class Equipment
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 设备编号
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 设备名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 设备型号
+    /// </summary>
+    public string? Model { get; set; }
+    
+    /// <summary>
+    /// 产线ID
+    /// </summary>
+    public int? ProductionLineId { get; set; }
+    
+    /// <summary>
+    /// 额定产能（件/小时）
+    /// </summary>
+    public int RatedCapacity { get; set; }
+    
+    /// <summary>
+    /// 理想节拍（秒/件）
+    /// </summary>
+    public decimal IdealCycleTime { get; set; }
+    
+    /// <summary>
+    /// 是否启用
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    // Navigation properties
+    public ProductionLine? ProductionLine { get; set; }
+    public ICollection<EquipmentStatus> StatusHistory { get; set; } = new List<EquipmentStatus>();
+    public ICollection<EquipmentAlarm> Alarms { get; set; } = new List<EquipmentAlarm>();
+    public ICollection<DowntimeRecord> DowntimeRecords { get; set; } = new List<DowntimeRecord>();
+}
+```
+
+- [ ] **Step 5: Create EquipmentStatus entity**
+
+Create file `src/MesCopilot.Domain/Entities/Equipment/EquipmentStatus.cs`:
+
+```csharp
+using MesCopilot.Domain.Enums;
+
+namespace MesCopilot.Domain.Entities.Equipment;
+
+/// <summary>
+/// 设备状态记录
+/// </summary>
+public class EquipmentStatus
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 设备ID
+    /// </summary>
+    public int EquipmentId { get; set; }
+    
+    /// <summary>
+    /// 状态
+    /// </summary>
+    public EquipmentState State { get; set; }
+    
+    /// <summary>
+    /// 开始时间
+    /// </summary>
+    public DateTime StartTime { get; set; }
+    
+    /// <summary>
+    /// 结束时间
+    /// </summary>
+    public DateTime? EndTime { get; set; }
+    
+    /// <summary>
+    /// 持续时长（分钟）
+    /// </summary>
+    public int? DurationMinutes { get; set; }
+    
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remarks { get; set; }
+    
+    // Navigation properties
+    public Equipment Equipment { get; set; } = null!;
+}
+```
+
+- [ ] **Step 6: Create EquipmentAlarm entity**
+
+Create file `src/MesCopilot.Domain/Entities/Equipment/EquipmentAlarm.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Equipment;
+
+/// <summary>
+/// 设备报警记录
+/// </summary>
+public class EquipmentAlarm
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 设备ID
+    /// </summary>
+    public int EquipmentId { get; set; }
+    
+    /// <summary>
+    /// 报警代码
+    /// </summary>
+    public string AlarmCode { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 报警消息
+    /// </summary>
+    public string Message { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 报警级别（1-5）
+    /// </summary>
+    public int Level { get; set; }
+    
+    /// <summary>
+    /// 发生时间
+    /// </summary>
+    public DateTime OccurredAt { get; set; }
+    
+    /// <summary>
+    /// 确认时间
+    /// </summary>
+    public DateTime? AcknowledgedAt { get; set; }
+    
+    /// <summary>
+    /// 恢复时间
+    /// </summary>
+    public DateTime? ResolvedAt { get; set; }
+    
+    /// <summary>
+    /// 处理人员
+    /// </summary>
+    public string? HandlerName { get; set; }
+    
+    /// <summary>
+    /// 处理说明
+    /// </summary>
+    public string? Resolution { get; set; }
+    
+    // Navigation properties
+    public Equipment Equipment { get; set; } = null!;
+}
+```
+
+- [ ] **Step 7: Create DowntimeRecord entity**
+
+Create file `src/MesCopilot.Domain/Entities/Equipment/DowntimeRecord.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Equipment;
+
+/// <summary>
+/// 停机记录
+/// </summary>
+public class DowntimeRecord
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 设备ID
+    /// </summary>
+    public int EquipmentId { get; set; }
+    
+    /// <summary>
+    /// 停机原因
+    /// </summary>
+    public string Reason { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 停机类型（计划/非计划）
+    /// </summary>
+    public string DowntimeType { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 开始时间
+    /// </summary>
+    public DateTime StartTime { get; set; }
+    
+    /// <summary>
+    /// 结束时间
+    /// </summary>
+    public DateTime? EndTime { get; set; }
+    
+    /// <summary>
+    /// 持续时长（分钟）
+    /// </summary>
+    public int? DurationMinutes { get; set; }
+    
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string? Description { get; set; }
+    
+    // Navigation properties
+    public Equipment Equipment { get; set; } = null!;
+}
+```
+
+- [ ] **Step 8: Build Domain project**
+
+```bash
+dotnet build src/MesCopilot.Domain/MesCopilot.Domain.csproj
+```
+
+Expected: Build succeeded
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add src/MesCopilot.Domain/Entities/Quality/
+git add src/MesCopilot.Domain/Entities/Equipment/
+git commit -m "feat(domain): add quality and equipment entities
+
+Quality entities:
+- QualityInspection: 质检记录
+- DefectRecord: 不良记录
+- DefectType: 不良类型
+
+Equipment entities:
+- Equipment: 设备主数据 with rated capacity
+- EquipmentStatus: 设备状态记录
+- EquipmentAlarm: 设备报警记录
+- DowntimeRecord: 停机记录
+
+All entities support OEE calculation and quality tracing"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 1.6: Define Knowledge Base Entities
+
+**Files:**
+- Create: `src/MesCopilot.Domain/Entities/Knowledge/Document.cs`
+- Create: `src/MesCopilot.Domain/Entities/Knowledge/DocumentChunk.cs`
+
+**Interfaces:**
+- Consumes: DocumentType enum
+- Produces: Document and DocumentChunk entities for RAG
+
+- [ ] **Step 1: Create Document entity**
+
+Create file `src/MesCopilot.Domain/Entities/Knowledge/Document.cs`:
+
+```csharp
+using MesCopilot.Domain.Enums;
+
+namespace MesCopilot.Domain.Entities.Knowledge;
+
+/// <summary>
+/// 知识库文档
+/// </summary>
+public class Document
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 文档标题
+    /// </summary>
+    public string Title { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 文件名
+    /// </summary>
+    public string FileName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 文件路径
+    /// </summary>
+    public string FilePath { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 文档类型
+    /// </summary>
+    public DocumentType Type { get; set; }
+    
+    /// <summary>
+    /// 文件大小（字节）
+    /// </summary>
+    public long FileSize { get; set; }
+    
+    /// <summary>
+    /// MIME类型
+    /// </summary>
+    public string MimeType { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 上传时间
+    /// </summary>
+    public DateTime UploadedAt { get; set; }
+    
+    /// <summary>
+    /// 向量化状态（pending/processing/completed/failed）
+    /// </summary>
+    public string VectorizationStatus { get; set; } = "pending";
+    
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string? Description { get; set; }
+    
+    // Navigation properties
+    public ICollection<DocumentChunk> Chunks { get; set; } = new List<DocumentChunk>();
+}
+```
+
+- [ ] **Step 2: Create DocumentChunk entity**
+
+Create file `src/MesCopilot.Domain/Entities/Knowledge/DocumentChunk.cs`:
+
+```csharp
+namespace MesCopilot.Domain.Entities.Knowledge;
+
+/// <summary>
+/// 文档切片（用于 RAG）
+/// </summary>
+public class DocumentChunk
+{
+    public int Id { get; set; }
+    
+    /// <summary>
+    /// 文档ID
+    /// </summary>
+    public int DocumentId { get; set; }
+    
+    /// <summary>
+    /// 切片序号
+    /// </summary>
+    public int Sequence { get; set; }
+    
+    /// <summary>
+    /// 文本内容
+    /// </summary>
+    public string Content { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// 向量（存储为 JSON 或使用 pgvector）
+    /// </summary>
+    public string? Vector { get; set; }
+    
+    /// <summary>
+    /// Token 数量
+    /// </summary>
+    public int TokenCount { get; set; }
+    
+    /// <summary>
+    /// 页码（仅 PDF 有）
+    /// </summary>
+    public int? PageNumber { get; set; }
+    
+    /// <summary>
+    /// 章节标题
+    /// </summary>
+    public string? SectionTitle { get; set; }
+    
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+    
+    // Navigation properties
+    public Document Document { get; set; } = null!;
+}
+```
+
+- [ ] **Step 3: Build and commit**
+
+```bash
+dotnet build src/MesCopilot.Domain/MesCopilot.Domain.csproj
+git add src/MesCopilot.Domain/Entities/Knowledge/
+git commit -m "feat(domain): add knowledge base entities for RAG
+
+- Document: 知识库文档 with vectorization status
+- DocumentChunk: 文档切片 with vector field
+- Support for PDF page numbers and section titles"
+```
+
+Expected: Build succeeded, changes committed
+
+---
+
+### Task 1.7: Setup EF Core Infrastructure
+
+**Files:**
+- Modify: `src/MesCopilot.Infrastructure/MesCopilot.Infrastructure.csproj` (add packages)
+- Create: `src/MesCopilot.Infrastructure/Data/MesDbContext.cs`
+- Create: `src/MesCopilot.Infrastructure/Data/Configurations/ProductConfiguration.cs`
+- Create: `src/MesCopilot.Infrastructure/Data/Configurations/WorkOrderConfiguration.cs`
+- Create: `src/MesCopilot.Infrastructure/Data/Configurations/EquipmentConfiguration.cs`
+
+**Interfaces:**
+- Consumes: All Domain entities
+- Produces: DbContext with entity configurations, connection to PostgreSQL
+
+- [ ] **Step 1: Add EF Core packages to Infrastructure project**
+
+```bash
+cd src/MesCopilot.Infrastructure
+dotnet add package Microsoft.EntityFrameworkCore --version 8.0.0
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.0
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0.0
+dotnet add package Pgvector.EntityFrameworkCore --version 0.2.0
+cd ../..
+```
+
+Expected: Packages added
+
+- [ ] **Step 2: Add Domain project reference to Infrastructure**
+
+```bash
+cd src/MesCopilot.Infrastructure
+dotnet add reference ../MesCopilot.Domain/MesCopilot.Domain.csproj
+cd ../..
+```
+
+Expected: Reference added
+
+
+- [ ] **Step 3: Create MesDbContext**
+
+Create file `src/MesCopilot.Infrastructure/Data/MesDbContext.cs`:
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using MesCopilot.Domain.Entities.Products;
+using MesCopilot.Domain.Entities.Production;
+using MesCopilot.Domain.Entities.Quality;
+using MesCopilot.Domain.Entities.Equipment;
+using MesCopilot.Domain.Entities.Knowledge;
+
+namespace MesCopilot.Infrastructure.Data;
+
+public class MesDbContext : DbContext
+{
+    public MesDbContext(DbContextOptions<MesDbContext> options) : base(options)
+    {
+    }
+
+    // Products
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Material> Materials => Set<Material>();
+    public DbSet<Bom> Boms => Set<Bom>();
+    public DbSet<BomItem> BomItems => Set<BomItem>();
+
+    // Production
+    public DbSet<ProductionLine> ProductionLines => Set<ProductionLine>();
+    public DbSet<ProcessRoute> ProcessRoutes => Set<ProcessRoute>();
+    public DbSet<ProcessStep> ProcessSteps => Set<ProcessStep>();
+    public DbSet<Workstation> Workstations => Set<Workstation>();
+    public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
+    public DbSet<WorkOrderOperation> WorkOrderOperations => Set<WorkOrderOperation>();
+    public DbSet<ProductionReport> ProductionReports => Set<ProductionReport>();
+
+    // Quality
+    public DbSet<QualityInspection> QualityInspections => Set<QualityInspection>();
+    public DbSet<DefectRecord> DefectRecords => Set<DefectRecord>();
+    public DbSet<DefectType> DefectTypes => Set<DefectType>();
+
+    // Equipment
+    public DbSet<Equipment> Equipment => Set<Equipment>();
+    public DbSet<EquipmentStatus> EquipmentStatuses => Set<EquipmentStatus>();
+    public DbSet<EquipmentAlarm> EquipmentAlarms => Set<EquipmentAlarm>();
+    public DbSet<DowntimeRecord> DowntimeRecords => Set<DowntimeRecord>();
+
+    // Knowledge
+    public DbSet<Document> Documents => Set<Document>();
+    public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Apply configurations
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(MesDbContext).Assembly);
+    }
+}
+```
+
+- [ ] **Step 4: Create Product entity configuration**
+
+Create file `src/MesCopilot.Infrastructure/Data/Configurations/ProductConfiguration.cs`:
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using MesCopilot.Domain.Entities.Products;
+
+namespace MesCopilot.Infrastructure.Data.Configurations;
+
+public class ProductConfiguration : IEntityTypeConfiguration<Product>
+{
+    public void Configure(EntityTypeBuilder<Product> builder)
+    {
+        builder.ToTable("Products");
+
+        builder.HasKey(p => p.Id);
+
+        builder.Property(p => p.Code)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.Property(p => p.Name)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(p => p.Specification)
+            .HasMaxLength(500);
+
+        builder.Property(p => p.Unit)
+            .IsRequired()
+            .HasMaxLength(20);
+
+        builder.HasIndex(p => p.Code).IsUnique();
+
+        builder.HasMany(p => p.Boms)
+            .WithOne(b => b.Product)
+            .HasForeignKey(b => b.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class MaterialConfiguration : IEntityTypeConfiguration<Material>
+{
+    public void Configure(EntityTypeBuilder<Material> builder)
+    {
+        builder.ToTable("Materials");
+        
+        builder.HasKey(m => m.Id);
+        
+        builder.Property(m => m.Code).IsRequired().HasMaxLength(50);
+        builder.Property(m => m.Name).IsRequired().HasMaxLength(200);
+        builder.Property(m => m.Unit).IsRequired().HasMaxLength(20);
+        builder.Property(m => m.StockQuantity).HasPrecision(18, 2);
+        
+        builder.HasIndex(m => m.Code).IsUnique();
+    }
+}
+
+public class BomConfiguration : IEntityTypeConfiguration<Bom>
+{
+    public void Configure(EntityTypeBuilder<Bom> builder)
+    {
+        builder.ToTable("Boms");
+        
+        builder.HasKey(b => b.Id);
+        
+        builder.Property(b => b.Code).IsRequired().HasMaxLength(50);
+        builder.Property(b => b.Version).IsRequired().HasMaxLength(20);
+        
+        builder.HasIndex(b => b.Code).IsUnique();
+    }
+}
+
+public class BomItemConfiguration : IEntityTypeConfiguration<BomItem>
+{
+    public void Configure(EntityTypeBuilder<BomItem> builder)
+    {
+        builder.ToTable("BomItems");
+        
+        builder.HasKey(bi => bi.Id);
+        
+        builder.Property(bi => bi.Quantity).HasPrecision(18, 4);
+        builder.Property(bi => bi.Unit).IsRequired().HasMaxLength(20);
+        
+        builder.HasOne(bi => bi.Bom)
+            .WithMany(b => b.BomItems)
+            .HasForeignKey(bi => bi.BomId);
+            
+        builder.HasOne(bi => bi.Material)
+            .WithMany(m => m.BomItems)
+            .HasForeignKey(bi => bi.MaterialId);
+    }
+}
+```
+
+- [ ] **Step 5: Create WorkOrder entity configuration**
+
+Create file `src/MesCopilot.Infrastructure/Data/Configurations/WorkOrderConfiguration.cs`:
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using MesCopilot.Domain.Entities.Production;
+
+namespace MesCopilot.Infrastructure.Data.Configurations;
+
+public class WorkOrderConfiguration : IEntityTypeConfiguration<WorkOrder>
+{
+    public void Configure(EntityTypeBuilder<WorkOrder> builder)
+    {
+        builder.ToTable("WorkOrders");
+
+        builder.HasKey(w => w.Id);
+
+        builder.Property(w => w.Code)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.Property(w => w.Status)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        builder.HasIndex(w => w.Code).IsUnique();
+        builder.HasIndex(w => w.Status);
+        builder.HasIndex(w => w.PlannedStartTime);
+
+        builder.HasOne(w => w.Product)
+            .WithMany()
+            .HasForeignKey(w => w.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(w => w.ProductionLine)
+            .WithMany(pl => pl.WorkOrders)
+            .HasForeignKey(w => w.ProductionLineId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Ignore(w => w.Progress);
+    }
+}
+
+public class ProductionLineConfiguration : IEntityTypeConfiguration<ProductionLine>
+{
+    public void Configure(EntityTypeBuilder<ProductionLine> builder)
+    {
+        builder.ToTable("ProductionLines");
+        
+        builder.HasKey(pl => pl.Id);
+        
+        builder.Property(pl => pl.Code).IsRequired().HasMaxLength(50);
+        builder.Property(pl => pl.Name).IsRequired().HasMaxLength(200);
+        
+        builder.HasIndex(pl => pl.Code).IsUnique();
+    }
+}
+
+public class ProcessRouteConfiguration : IEntityTypeConfiguration<ProcessRoute>
+{
+    public void Configure(EntityTypeBuilder<ProcessRoute> builder)
+    {
+        builder.ToTable("ProcessRoutes");
+        
+        builder.HasKey(pr => pr.Id);
+        
+        builder.Property(pr => pr.Code).IsRequired().HasMaxLength(50);
+        builder.Property(pr => pr.Name).IsRequired().HasMaxLength(200);
+        
+        builder.HasIndex(pr => pr.Code).IsUnique();
+    }
+}
+
+public class ProcessStepConfiguration : IEntityTypeConfiguration<ProcessStep>
+{
+    public void Configure(EntityTypeBuilder<ProcessStep> builder)
+    {
+        builder.ToTable("ProcessSteps");
+        
+        builder.HasKey(ps => ps.Id);
+        
+        builder.Property(ps => ps.Code).IsRequired().HasMaxLength(50);
+        builder.Property(ps => ps.Name).IsRequired().HasMaxLength(200);
+        builder.Property(ps => ps.StandardTime).HasPrecision(10, 2);
+    }
+}
+
+public class WorkstationConfiguration : IEntityTypeConfiguration<Workstation>
+{
+    public void Configure(EntityTypeBuilder<Workstation> builder)
+    {
+        builder.ToTable("Workstations");
+        
+        builder.HasKey(w => w.Id);
+        
+        builder.Property(w => w.Code).IsRequired().HasMaxLength(50);
+        builder.Property(w => w.Name).IsRequired().HasMaxLength(200);
+        
+        builder.HasIndex(w => w.Code).IsUnique();
+    }
+}
+
+public class ProductionReportConfiguration : IEntityTypeConfiguration<ProductionReport>
+{
+    public void Configure(EntityTypeBuilder<ProductionReport> builder)
+    {
+        builder.ToTable("ProductionReports");
+        
+        builder.HasKey(pr => pr.Id);
+        
+        builder.Property(pr => pr.BatchNumber).IsRequired().HasMaxLength(50);
+        builder.Property(pr => pr.OperatorId).IsRequired().HasMaxLength(50);
+        builder.Property(pr => pr.OperatorName).IsRequired().HasMaxLength(100);
+        
+        builder.HasIndex(pr => pr.BatchNumber);
+        builder.HasIndex(pr => pr.Timestamp);
+    }
+}
+```
+
+- [ ] **Step 6: Create Equipment entity configuration**
+
+Create file `src/MesCopilot.Infrastructure/Data/Configurations/EquipmentConfiguration.cs`:
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using MesCopilot.Domain.Entities.Equipment;
+
+namespace MesCopilot.Infrastructure.Data.Configurations;
+
+public class EquipmentConfiguration : IEntityTypeConfiguration<Equipment>
+{
+    public void Configure(EntityTypeBuilder<Equipment> builder)
+    {
+        builder.ToTable("Equipment");
+
+        builder.HasKey(e => e.Id);
+
+        builder.Property(e => e.Code)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.Property(e => e.Name)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(e => e.Model)
+            .HasMaxLength(100);
+
+        builder.Property(e => e.IdealCycleTime)
+            .HasPrecision(10, 2);
+
+        builder.HasIndex(e => e.Code).IsUnique();
+    }
+}
+
+public class EquipmentStatusConfiguration : IEntityTypeConfiguration<EquipmentStatus>
+{
+    public void Configure(EntityTypeBuilder<EquipmentStatus> builder)
+    {
+        builder.ToTable("EquipmentStatuses");
+        
+        builder.HasKey(es => es.Id);
+        
+        builder.Property(es => es.State)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+        
+        builder.HasIndex(es => new { es.EquipmentId, es.StartTime });
+    }
+}
+
+public class EquipmentAlarmConfiguration : IEntityTypeConfiguration<EquipmentAlarm>
+{
+    public void Configure(EntityTypeBuilder<EquipmentAlarm> builder)
+    {
+        builder.ToTable("EquipmentAlarms");
+        
+        builder.HasKey(ea => ea.Id);
+        
+        builder.Property(ea => ea.AlarmCode).IsRequired().HasMaxLength(50);
+        builder.Property(ea => ea.Message).IsRequired().HasMaxLength(500);
+        
+        builder.HasIndex(ea => new { ea.EquipmentId, ea.OccurredAt });
+    }
+}
+```
+
+- [ ] **Step 7: Add connection string to appsettings**
+
+Create file `src/MesCopilot.Api/appsettings.Development.json`:
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "MesDatabase": "Host=localhost;Port=5432;Database=mes_copilot;Username=postgres;Password=postgres"
+  }
+}
+```
+
+- [ ] **Step 8: Register DbContext in API project**
+
+Add Infrastructure reference and register DbContext in `src/MesCopilot.Api/Program.cs`:
+
+```bash
+cd src/MesCopilot.Api
+dotnet add reference ../MesCopilot.Infrastructure/MesCopilot.Infrastructure.csproj
+cd ../..
+```
+
+Modify `src/MesCopilot.Api/Program.cs`:
+
+```csharp
+using MesCopilot.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Add DbContext
+builder.Services.AddDbContext<MesDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("MesDatabase")));
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
+```
+
+- [ ] **Step 9: Create initial migration**
+
+```bash
+cd src/MesCopilot.Api
+dotnet ef migrations add InitialCreate --project ../MesCopilot.Infrastructure/MesCopilot.Infrastructure.csproj --context MesDbContext
+cd ../..
+```
+
+Expected: Migration created with all tables
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add src/MesCopilot.Infrastructure/
+git add src/MesCopilot.Api/
+git commit -m "feat(infrastructure): setup EF Core with PostgreSQL
+
+- Add MesDbContext with all DbSets
+- Configure entity relationships and constraints
+- Add entity type configurations for all entities
+- Setup connection string in appsettings
+- Create initial EF Core migration
+- Register DbContext in API project"
+```
+
+Expected: Changes committed
+
+---
+
+
+### Task 1.8: Create Seed Data
+
+**Files:**
+- Create: `src/MesCopilot.Infrastructure/Data/SeedData.cs`
+
+**Interfaces:**
+- Consumes: MesDbContext, all entities
+- Produces: Test data for MVP (3 products, 5 equipment, 10 work orders)
+
+- [ ] **Step 1: Create SeedData class**
+
+Create file `src/MesCopilot.Infrastructure/Data/SeedData.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Products;
+using MesCopilot.Domain.Entities.Production;
+using MesCopilot.Domain.Entities.Equipment;
+using MesCopilot.Domain.Entities.Quality;
+using MesCopilot.Domain.Enums;
+
+namespace MesCopilot.Infrastructure.Data;
+
+public static class SeedData
+{
+    public static async Task SeedAsync(MesDbContext context)
+    {
+        if (context.Products.Any()) return; // Already seeded
+
+        // Seed Products
+        var products = new[]
+        {
+            new Product { Id = 1, Code = "PROD-A", Name = "产品A", Unit = "个", CreatedAt = DateTime.UtcNow },
+            new Product { Id = 2, Code = "PROD-B", Name = "产品B", Unit = "个", CreatedAt = DateTime.UtcNow },
+            new Product { Id = 3, Code = "PROD-C", Name = "产品C", Unit = "个", CreatedAt = DateTime.UtcNow }
+        };
+        context.Products.AddRange(products);
+
+        // Seed Production Lines
+        var lines = new[]
+        {
+            new ProductionLine { Id = 1, Code = "LINE-1", Name = "一号线", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new ProductionLine { Id = 2, Code = "LINE-2", Name = "二号线", IsActive = true, CreatedAt = DateTime.UtcNow }
+        };
+        context.ProductionLines.AddRange(lines);
+
+        // Seed Equipment
+        var equipment = new[]
+        {
+            new Equipment { Id = 1, Code = "A101", Name = "冲压机1号", Model = "XYZ-2000", ProductionLineId = 1, RatedCapacity = 100, IdealCycleTime = 36, IsActive = true, CreatedAt = DateTime.UtcNow },
+            new Equipment { Id = 2, Code = "A102", Name = "冲压机2号", Model = "XYZ-2000", ProductionLineId = 1, RatedCapacity = 100, IdealCycleTime = 36, IsActive = true, CreatedAt = DateTime.UtcNow },
+            new Equipment { Id = 3, Code = "B201", Name = "焊接机1号", Model = "WLD-500", ProductionLineId = 2, RatedCapacity = 80, IdealCycleTime = 45, IsActive = true, CreatedAt = DateTime.UtcNow },
+            new Equipment { Id = 4, Code = "B202", Name = "焊接机2号", Model = "WLD-500", ProductionLineId = 2, RatedCapacity = 80, IdealCycleTime = 45, IsActive = true, CreatedAt = DateTime.UtcNow },
+            new Equipment { Id = 5, Code = "C301", Name = "检测设备", Model = "CHK-100", ProductionLineId = 1, RatedCapacity = 200, IdealCycleTime = 18, IsActive = true, CreatedAt = DateTime.UtcNow }
+        };
+        context.Equipment.AddRange(equipment);
+
+        // Seed Work Orders (3 delayed, 7 in progress or completed)
+        var now = DateTime.UtcNow;
+        var workOrders = new[]
+        {
+            new WorkOrder { Id = 1, Code = "WO-001", ProductId = 1, ProductionLineId = 1, PlannedQuantity = 1000, CompletedQuantity = 750, QualifiedQuantity = 740, Status = WorkOrderStatus.InProgress, PlannedStartTime = now.AddDays(-2), PlannedEndTime = now.AddDays(1), ActualStartTime = now.AddDays(-2), CreatedAt = now.AddDays(-3) },
+            new WorkOrder { Id = 2, Code = "WO-002", ProductId = 2, ProductionLineId = 1, PlannedQuantity = 800, CompletedQuantity = 200, QualifiedQuantity = 195, Status = WorkOrderStatus.InProgress, PlannedStartTime = now.AddDays(-1), PlannedEndTime = now.AddDays(2), ActualStartTime = now.AddDays(-1), CreatedAt = now.AddDays(-2) },
+            new WorkOrder { Id = 3, Code = "WO-003", ProductId = 3, ProductionLineId = 2, PlannedQuantity = 500, CompletedQuantity = 50, QualifiedQuantity = 48, Status = WorkOrderStatus.InProgress, PlannedStartTime = now.AddDays(-3), PlannedEndTime = now.AddDays(-1), ActualStartTime = now.AddDays(-2), CreatedAt = now.AddDays(-4) }, // Delayed
+            new WorkOrder { Id = 4, Code = "WO-004", ProductId = 1, ProductionLineId = 2, PlannedQuantity = 600, CompletedQuantity = 0, QualifiedQuantity = 0, Status = WorkOrderStatus.Scheduled, PlannedStartTime = now.AddDays(-1), PlannedEndTime = now.AddDays(1), CreatedAt = now.AddDays(-2) }, // Delayed - not started
+            new WorkOrder { Id = 5, Code = "WO-005", ProductId = 2, ProductionLineId = 1, PlannedQuantity = 1200, CompletedQuantity = 300, QualifiedQuantity = 290, Status = WorkOrderStatus.InProgress, PlannedStartTime = now.AddDays(-2), PlannedEndTime = now, ActualStartTime = now.AddDays(-1), CreatedAt = now.AddDays(-3) }, // Delayed
+            new WorkOrder { Id = 6, Code = "WO-006", ProductId = 3, ProductionLineId = 1, PlannedQuantity = 500, CompletedQuantity = 500, QualifiedQuantity = 495, Status = WorkOrderStatus.Completed, PlannedStartTime = now.AddDays(-5), PlannedEndTime = now.AddDays(-3), ActualStartTime = now.AddDays(-5), ActualEndTime = now.AddDays(-3), CreatedAt = now.AddDays(-6) },
+            new WorkOrder { Id = 7, Code = "WO-007", ProductId = 1, ProductionLineId = 2, PlannedQuantity = 800, CompletedQuantity = 800, QualifiedQuantity = 790, Status = WorkOrderStatus.Completed, PlannedStartTime = now.AddDays(-4), PlannedEndTime = now.AddDays(-2), ActualStartTime = now.AddDays(-4), ActualEndTime = now.AddDays(-2), CreatedAt = now.AddDays(-5) },
+            new WorkOrder { Id = 8, Code = "WO-008", ProductId = 2, ProductionLineId = 1, PlannedQuantity = 1000, CompletedQuantity = 500, QualifiedQuantity = 485, Status = WorkOrderStatus.InProgress, PlannedStartTime = now.AddDays(-1), PlannedEndTime = now.AddDays(2), ActualStartTime = now.AddDays(-1), CreatedAt = now.AddDays(-2) },
+            new WorkOrder { Id = 9, Code = "WO-009", ProductId = 3, ProductionLineId = 2, PlannedQuantity = 600, CompletedQuantity = 600, QualifiedQuantity = 595, Status = WorkOrderStatus.Completed, PlannedStartTime = now.AddDays(-6), PlannedEndTime = now.AddDays(-4), ActualStartTime = now.AddDays(-6), ActualEndTime = now.AddDays(-4), CreatedAt = now.AddDays(-7) },
+            new WorkOrder { Id = 10, Code = "WO-010", ProductId = 1, ProductionLineId = 1, PlannedQuantity = 900, CompletedQuantity = 450, QualifiedQuantity = 445, Status = WorkOrderStatus.InProgress, PlannedStartTime = now, PlannedEndTime = now.AddDays(3), ActualStartTime = now, CreatedAt = now.AddDays(-1) }
+        };
+        context.WorkOrders.AddRange(workOrders);
+
+        // Seed DefectTypes
+        var defectTypes = new[]
+        {
+            new DefectType { Id = 1, Code = "D001", Name = "尺寸超差", IsActive = true },
+            new DefectType { Id = 2, Code = "D002", Name = "表面划伤", IsActive = true },
+            new DefectType { Id = 3, Code = "D003", Name = "焊接不良", IsActive = true },
+            new DefectType { Id = 4, Code = "D004", Name = "材料缺陷", IsActive = true }
+        };
+        context.DefectTypes.AddRange(defectTypes);
+
+        await context.SaveChangesAsync();
+    }
+}
+```
+
+- [ ] **Step 2: Call SeedData in Program.cs**
+
+Modify `src/MesCopilot.Api/Program.cs` to seed data on startup:
+
+```csharp
+// ... existing code ...
+
+var app = builder.Build();
+
+// Seed database
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<MesDbContext>();
+    await dbContext.Database.MigrateAsync();
+    await SeedData.SeedAsync(dbContext);
+}
+
+// ... rest of code ...
+```
+
+- [ ] **Step 3: Build and run to test**
+
+```bash
+dotnet build
+```
+
+Expected: Build succeeded
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/MesCopilot.Infrastructure/Data/SeedData.cs
+git add src/MesCopilot.Api/Program.cs
+git commit -m "feat(infrastructure): add seed data for MVP testing
+
+Seed data includes:
+- 3 products (PROD-A, PROD-B, PROD-C)
+- 2 production lines
+- 5 equipment (冲压机, 焊接机, 检测设备)
+- 10 work orders (3 delayed, 4 in progress, 3 completed)
+- 4 defect types
+
+Auto-seed on application startup"
+```
+
+Expected: Changes committed
+
+---
+
+## Phase 2: MES Core CRUD APIs
+
+### Task 2.1: Create Application Services Layer
+
+**Files:**
+- Create: `src/MesCopilot.Application/Services/IWorkOrderService.cs`
+- Create: `src/MesCopilot.Application/Services/WorkOrderService.cs`
+- Create: `src/MesCopilot.Application/Dtos/WorkOrderDto.cs`
+- Create: `tests/MesCopilot.UnitTests/Application/Services/WorkOrderServiceTests.cs`
+
+**Interfaces:**
+- Consumes: MesDbContext, WorkOrder entity
+- Produces: IWorkOrderService with GetAll, GetById, Create, Start, Report, Complete methods
+
+- [ ] **Step 1: Add Application reference to Infrastructure**
+
+```bash
+cd src/MesCopilot.Application
+dotnet add reference ../MesCopilot.Domain/MesCopilot.Domain.csproj
+dotnet add reference ../MesCopilot.Infrastructure/MesCopilot.Infrastructure.csproj
+cd ../..
+```
+
+Expected: References added
+
+- [ ] **Step 2: Create WorkOrderDto**
+
+Create file `src/MesCopilot.Application/Dtos/WorkOrderDto.cs`:
+
+```csharp
+using MesCopilot.Domain.Enums;
+
+namespace MesCopilot.Application.Dtos;
+
+public record WorkOrderDto(
+    int Id,
+    string Code,
+    int ProductId,
+    string ProductName,
+    int ProductionLineId,
+    string ProductionLineName,
+    int PlannedQuantity,
+    int CompletedQuantity,
+    int QualifiedQuantity,
+    WorkOrderStatus Status,
+    DateTime PlannedStartTime,
+    DateTime PlannedEndTime,
+    DateTime? ActualStartTime,
+    DateTime? ActualEndTime,
+    decimal Progress
+);
+
+public record CreateWorkOrderRequest(
+    string Code,
+    int ProductId,
+    int ProductionLineId,
+    int PlannedQuantity,
+    DateTime PlannedStartTime,
+    DateTime PlannedEndTime
+);
+
+public record ReportProductionRequest(
+    int Quantity,
+    int QualifiedQuantity,
+    string OperatorId,
+    string OperatorName
+);
+```
+
+- [ ] **Step 3: Create IWorkOrderService interface**
+
+Create file `src/MesCopilot.Application/Services/IWorkOrderService.cs`:
+
+```csharp
+using MesCopilot.Application.Dtos;
+
+namespace MesCopilot.Application.Services;
+
+public interface IWorkOrderService
+{
+    Task<IEnumerable<WorkOrderDto>> GetAllAsync();
+    Task<WorkOrderDto?> GetByIdAsync(int id);
+    Task<WorkOrderDto> CreateAsync(CreateWorkOrderRequest request);
+    Task<WorkOrderDto> StartAsync(int id);
+    Task<WorkOrderDto> ReportAsync(int id, ReportProductionRequest request);
+    Task<WorkOrderDto> CompleteAsync(int id);
+    Task<IEnumerable<WorkOrderDto>> GetTodayWorkOrdersAsync(int? productionLineId = null);
+    Task<IEnumerable<WorkOrderDto>> GetDelayedWorkOrdersAsync(DateTime? startDate = null, DateTime? endDate = null);
+}
+```
+
+
+- [ ] **Step 4: Write test for WorkOrderService**
+
+Create file `tests/MesCopilot.UnitTests/Application/Services/WorkOrderServiceTests.cs`:
+
+```csharp
+using MesCopilot.Application.Services;
+using MesCopilot.Domain.Entities.Production;
+using MesCopilot.Domain.Enums;
+using MesCopilot.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
+
+namespace MesCopilot.UnitTests.Application.Services;
+
+public class WorkOrderServiceTests
+{
+    private MesDbContext CreateInMemoryContext()
+    {
+        var options = new DbContextOptionsBuilder<MesDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        return new MesDbContext(options);
+    }
+
+    [Fact]
+    public async Task GetTodayWorkOrdersAsync_ShouldReturnOnlyTodayOrders()
+    {
+        // Arrange
+        var context = CreateInMemoryContext();
+        var today = DateTime.UtcNow.Date;
+        
+        context.WorkOrders.AddRange(
+            new WorkOrder { Id = 1, Code = "WO-TODAY", ProductId = 1, ProductionLineId = 1, PlannedQuantity = 100, CreatedAt = today },
+            new WorkOrder { Id = 2, Code = "WO-YESTERDAY", ProductId = 1, ProductionLineId = 1, PlannedQuantity = 100, CreatedAt = today.AddDays(-1) }
+        );
+        await context.SaveChangesAsync();
+        
+        var service = new WorkOrderService(context);
+        
+        // Act
+        var result = await service.GetTodayWorkOrdersAsync();
+        
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("WO-TODAY", result.First().Code);
+    }
+
+    [Fact]
+    public async Task StartAsync_ShouldUpdateStatusAndSetActualStartTime()
+    {
+        // Arrange
+        var context = CreateInMemoryContext();
+        var workOrder = new WorkOrder 
+        { 
+            Id = 1, 
+            Code = "WO-001", 
+            ProductId = 1, 
+            ProductionLineId = 1, 
+            PlannedQuantity = 100,
+            Status = WorkOrderStatus.Scheduled,
+            CreatedAt = DateTime.UtcNow
+        };
+        context.WorkOrders.Add(workOrder);
+        await context.SaveChangesAsync();
+        
+        var service = new WorkOrderService(context);
+        
+        // Act
+        var result = await service.StartAsync(1);
+        
+        // Assert
+        Assert.Equal(WorkOrderStatus.InProgress, result.Status);
+        Assert.NotNull(result.ActualStartTime);
+    }
+}
+```
+
+- [ ] **Step 5: Add test project references**
+
+```bash
+cd tests/MesCopilot.UnitTests
+dotnet add reference ../../src/MesCopilot.Application/MesCopilot.Application.csproj
+dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 8.0.0
+cd ../..
+```
+
+Expected: References and package added
+
+- [ ] **Step 6: Run test to verify it fails**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj --filter "FullyQualifiedName~WorkOrderServiceTests"
+```
+
+Expected: FAIL - WorkOrderService not implemented
+
+- [ ] **Step 7: Implement WorkOrderService**
+
+Create file `src/MesCopilot.Application/Services/WorkOrderService.cs`:
+
+```csharp
+using MesCopilot.Application.Dtos;
+using MesCopilot.Domain.Entities.Production;
+using MesCopilot.Domain.Enums;
+using MesCopilot.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace MesCopilot.Application.Services;
+
+public class WorkOrderService : IWorkOrderService
+{
+    private readonly MesDbContext _context;
+
+    public WorkOrderService(MesDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<IEnumerable<WorkOrderDto>> GetAllAsync()
+    {
+        return await _context.WorkOrders
+            .Include(w => w.Product)
+            .Include(w => w.ProductionLine)
+            .Select(w => ToDto(w))
+            .ToListAsync();
+    }
+
+    public async Task<WorkOrderDto?> GetByIdAsync(int id)
+    {
+        var workOrder = await _context.WorkOrders
+            .Include(w => w.Product)
+            .Include(w => w.ProductionLine)
+            .FirstOrDefaultAsync(w => w.Id == id);
+
+        return workOrder == null ? null : ToDto(workOrder);
+    }
+
+    public async Task<WorkOrderDto> CreateAsync(CreateWorkOrderRequest request)
+    {
+        var workOrder = new WorkOrder
+        {
+            Code = request.Code,
+            ProductId = request.ProductId,
+            ProductionLineId = request.ProductionLineId,
+            PlannedQuantity = request.PlannedQuantity,
+            PlannedStartTime = request.PlannedStartTime,
+            PlannedEndTime = request.PlannedEndTime,
+            Status = WorkOrderStatus.Scheduled,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.WorkOrders.Add(workOrder);
+        await _context.SaveChangesAsync();
+
+        return (await GetByIdAsync(workOrder.Id))!;
+    }
+
+    public async Task<WorkOrderDto> StartAsync(int id)
+    {
+        var workOrder = await _context.WorkOrders.FindAsync(id);
+        if (workOrder == null)
+            throw new InvalidOperationException($"WorkOrder {id} not found");
+
+        if (workOrder.Status != WorkOrderStatus.Scheduled)
+            throw new InvalidOperationException($"Cannot start work order in status {workOrder.Status}");
+
+        workOrder.Status = WorkOrderStatus.InProgress;
+        workOrder.ActualStartTime = DateTime.UtcNow;
+        workOrder.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return (await GetByIdAsync(id))!;
+    }
+
+    public async Task<WorkOrderDto> ReportAsync(int id, ReportProductionRequest request)
+    {
+        var workOrder = await _context.WorkOrders.FindAsync(id);
+        if (workOrder == null)
+            throw new InvalidOperationException($"WorkOrder {id} not found");
+
+        if (workOrder.Status != WorkOrderStatus.InProgress)
+            throw new InvalidOperationException($"Cannot report for work order in status {workOrder.Status}");
+
+        workOrder.CompletedQuantity += request.Quantity;
+        workOrder.QualifiedQuantity += request.QualifiedQuantity;
+        workOrder.UpdatedAt = DateTime.UtcNow;
+
+        // Create production report
+        var report = new ProductionReport
+        {
+            BatchNumber = $"B{DateTime.UtcNow:yyyyMMddHHmmss}",
+            WorkOrderId = id,
+            ProcessStepId = 1, // TODO: Get from actual process
+            EquipmentId = 1, // TODO: Get from actual equipment
+            OperatorId = request.OperatorId,
+            OperatorName = request.OperatorName,
+            Quantity = request.Quantity,
+            QualifiedQuantity = request.QualifiedQuantity,
+            Timestamp = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.ProductionReports.Add(report);
+
+        await _context.SaveChangesAsync();
+
+        return (await GetByIdAsync(id))!;
+    }
+
+    public async Task<WorkOrderDto> CompleteAsync(int id)
+    {
+        var workOrder = await _context.WorkOrders.FindAsync(id);
+        if (workOrder == null)
+            throw new InvalidOperationException($"WorkOrder {id} not found");
+
+        if (workOrder.Status != WorkOrderStatus.InProgress)
+            throw new InvalidOperationException($"Cannot complete work order in status {workOrder.Status}");
+
+        workOrder.Status = WorkOrderStatus.Completed;
+        workOrder.ActualEndTime = DateTime.UtcNow;
+        workOrder.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return (await GetByIdAsync(id))!;
+    }
+
+    public async Task<IEnumerable<WorkOrderDto>> GetTodayWorkOrdersAsync(int? productionLineId = null)
+    {
+        var today = DateTime.UtcNow.Date;
+        var query = _context.WorkOrders
+            .Include(w => w.Product)
+            .Include(w => w.ProductionLine)
+            .Where(w => w.CreatedAt.Date == today);
+
+        if (productionLineId.HasValue)
+            query = query.Where(w => w.ProductionLineId == productionLineId.Value);
+
+        return await query.Select(w => ToDto(w)).ToListAsync();
+    }
+
+    public async Task<IEnumerable<WorkOrderDto>> GetDelayedWorkOrdersAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var now = DateTime.UtcNow;
+        var query = _context.WorkOrders
+            .Include(w => w.Product)
+            .Include(w => w.ProductionLine)
+            .Where(w => w.PlannedEndTime < now && w.Status != WorkOrderStatus.Completed && w.Status != WorkOrderStatus.Closed);
+
+        if (startDate.HasValue)
+            query = query.Where(w => w.PlannedStartTime >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(w => w.PlannedEndTime <= endDate.Value);
+
+        return await query.Select(w => ToDto(w)).ToListAsync();
+    }
+
+    private static WorkOrderDto ToDto(WorkOrder workOrder)
+    {
+        return new WorkOrderDto(
+            workOrder.Id,
+            workOrder.Code,
+            workOrder.ProductId,
+            workOrder.Product?.Name ?? string.Empty,
+            workOrder.ProductionLineId,
+            workOrder.ProductionLine?.Name ?? string.Empty,
+            workOrder.PlannedQuantity,
+            workOrder.CompletedQuantity,
+            workOrder.QualifiedQuantity,
+            workOrder.Status,
+            workOrder.PlannedStartTime,
+            workOrder.PlannedEndTime,
+            workOrder.ActualStartTime,
+            workOrder.ActualEndTime,
+            workOrder.Progress
+        );
+    }
+}
+```
+
+- [ ] **Step 8: Run tests to verify they pass**
+
+```bash
+dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj --filter "FullyQualifiedName~WorkOrderServiceTests"
+```
+
+Expected: PASS - All tests green
+
+- [ ] **Step 9: Register service in DI**
+
+Modify `src/MesCopilot.Api/Program.cs`:
+
+```csharp
+using MesCopilot.Application.Services;
+
+// ... after AddDbContext ...
+
+builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
+```
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add src/MesCopilot.Application/
+git add tests/MesCopilot.UnitTests/Application/
+git add src/MesCopilot.Api/Program.cs
+git commit -m "feat(application): implement WorkOrderService with CRUD operations
+
+- GetAll, GetById, Create methods
+- Start, Report, Complete workflow methods
+- GetTodayWorkOrders for Agent queries
+- GetDelayedWorkOrders for delay analysis
+- Add comprehensive unit tests with in-memory database
+- Register service in DI container"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 2.2: Create WorkOrders API Controller
+
+**Files:**
+- Create: `src/MesCopilot.Api/Controllers/WorkOrdersController.cs`
+- Create: `tests/MesCopilot.IntegrationTests/Controllers/WorkOrdersControllerTests.cs`
+
+**Interfaces:**
+- Consumes: IWorkOrderService
+- Produces: REST API endpoints for work order management
+
+
+- [ ] **Step 1: Create WorkOrdersController**
+
+Create file `src/MesCopilot.Api/Controllers/WorkOrdersController.cs`:
+
+```csharp
+using MesCopilot.Application.Dtos;
+using MesCopilot.Application.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MesCopilot.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class WorkOrdersController : ControllerBase
+{
+    private readonly IWorkOrderService _workOrderService;
+
+    public WorkOrdersController(IWorkOrderService workOrderService)
+    {
+        _workOrderService = workOrderService;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<WorkOrderDto>>> GetAll()
+    {
+        var workOrders = await _workOrderService.GetAllAsync();
+        return Ok(workOrders);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<WorkOrderDto>> GetById(int id)
+    {
+        var workOrder = await _workOrderService.GetByIdAsync(id);
+        if (workOrder == null)
+            return NotFound();
+        return Ok(workOrder);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<WorkOrderDto>> Create([FromBody] CreateWorkOrderRequest request)
+    {
+        var workOrder = await _workOrderService.CreateAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = workOrder.Id }, workOrder);
+    }
+
+    [HttpPost("{id}/start")]
+    public async Task<ActionResult<WorkOrderDto>> Start(int id)
+    {
+        try
+        {
+            var workOrder = await _workOrderService.StartAsync(id);
+            return Ok(workOrder);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{id}/report")]
+    public async Task<ActionResult<WorkOrderDto>> Report(int id, [FromBody] ReportProductionRequest request)
+    {
+        try
+        {
+            var workOrder = await _workOrderService.ReportAsync(id, request);
+            return Ok(workOrder);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("{id}/complete")]
+    public async Task<ActionResult<WorkOrderDto>> Complete(int id)
+    {
+        try
+        {
+            var workOrder = await _workOrderService.CompleteAsync(id);
+            return Ok(workOrder);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+}
+```
+
+- [ ] **Step 2: Test API with Swagger**
+
+```bash
+cd src/MesCopilot.Api
+dotnet run
+```
+
+Expected: API starts, navigate to https://localhost:5001/swagger
+
+Test endpoints:
+- GET /api/workorders - should return seeded data
+- POST /api/workorders/1/start - should start work order
+
+- [ ] **Step 3: Create integration test with Testcontainers**
+
+Add packages to IntegrationTests project:
+
+```bash
+cd tests/MesCopilot.IntegrationTests
+dotnet add package Microsoft.AspNetCore.Mvc.Testing --version 8.0.0
+dotnet add package Testcontainers.PostgreSql --version 3.7.0
+dotnet add reference ../../src/MesCopilot.Api/MesCopilot.Api.csproj
+cd ../..
+```
+
+Create file `tests/MesCopilot.IntegrationTests/Controllers/WorkOrdersControllerTests.cs`:
+
+```csharp
+using System.Net;
+using System.Net.Http.Json;
+using MesCopilot.Application.Dtos;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
+
+namespace MesCopilot.IntegrationTests.Controllers;
+
+public class WorkOrdersControllerTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly WebApplicationFactory<Program> _factory;
+    private readonly HttpClient _client;
+
+    public WorkOrdersControllerTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = factory;
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task GetAll_ShouldReturnWorkOrders()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/workorders");
+        
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var workOrders = await response.Content.ReadFromJsonAsync<List<WorkOrderDto>>();
+        Assert.NotNull(workOrders);
+        Assert.NotEmpty(workOrders);
+    }
+
+    [Fact]
+    public async Task GetById_ExistingId_ShouldReturnWorkOrder()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/workorders/1");
+        
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var workOrder = await response.Content.ReadFromJsonAsync<WorkOrderDto>();
+        Assert.NotNull(workOrder);
+        Assert.Equal(1, workOrder.Id);
+    }
+
+    [Fact]
+    public async Task GetById_NonExistingId_ShouldReturn404()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/workorders/9999");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+}
+```
+
+Make Program class public in `src/MesCopilot.Api/Program.cs`:
+
+```csharp
+// At the end of Program.cs
+public partial class Program { }
+```
+
+- [ ] **Step 4: Run integration tests**
+
+```bash
+dotnet test tests/MesCopilot.IntegrationTests/MesCopilot.IntegrationTests.csproj
+```
+
+Expected: All tests pass
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/MesCopilot.Api/Controllers/WorkOrdersController.cs
+git add tests/MesCopilot.IntegrationTests/
+git add src/MesCopilot.Api/Program.cs
+git commit -m "feat(api): add WorkOrders REST API controller
+
+- GET /api/workorders - list all
+- GET /api/workorders/{id} - get by id
+- POST /api/workorders - create
+- POST /api/workorders/{id}/start - start work order
+- POST /api/workorders/{id}/report - report production
+- POST /api/workorders/{id}/complete - complete
+- Add integration tests with WebApplicationFactory
+- Make Program class public for testing"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 2.3-2.5: Equipment and Quality Services (Pattern Repeat)
+
+Following the same TDD pattern as WorkOrderService, implement:
+
+**Task 2.3: Equipment Service**
+- IEquipmentService interface
+- EquipmentService implementation  
+- EquipmentController API
+- Methods: GetAll, GetById, GetStatusHistory, GetAlarms, CalculateOee
+- Unit tests and integration tests
+
+**Task 2.4: Quality Service**
+- IQualityService interface
+- QualityService implementation
+- QualityController API
+- Methods: GetInspections, CreateInspection, TraceBatch, AnalyzeDefects
+- Unit tests and integration tests
+
+**Task 2.5: Knowledge Service (Basic)**
+- IKnowledgeService interface
+- KnowledgeService implementation
+- DocumentsController API
+- Methods: Upload, GetAll, GetById, Delete (vectorization in Phase 5)
+- Unit tests and integration tests
+
+**Implementation Pattern for Each Service:**
+
+```
+1. Create DTOs
+2. Create interface with method signatures
+3. Write failing unit tests
+4. Implement service with EF Core queries
+5. Run tests until green
+6. Create API controller
+7. Write integration tests
+8. Commit with descriptive message
+```
+
+Estimated: 2-3 tasks per day, following same structure as Task 2.1-2.2
+
+---
+
+## Phase 3: Device Simulator + SignalR
+
+### Task 3.1: Setup SignalR Hub
+
+**Files:**
+- Create: `src/MesCopilot.Api/Hubs/EquipmentHub.cs`
+- Modify: `src/MesCopilot.Api/Program.cs` (add SignalR)
+
+**Interfaces:**
+- Consumes: None
+- Produces: SignalR hub for real-time equipment status updates
+
+- [ ] **Step 1: Add SignalR to API**
+
+SignalR is included in ASP.NET Core 8.0, no package needed.
+
+Modify `src/MesCopilot.Api/Program.cs`:
+
+```csharp
+// After AddDbContext
+builder.Services.AddSignalR();
+
+// After MapControllers
+app.MapHub<EquipmentHub>("/hubs/equipment");
+```
+
+- [ ] **Step 2: Create EquipmentHub**
+
+Create file `src/MesCopilot.Api/Hubs/EquipmentHub.cs`:
+
+```csharp
+using Microsoft.AspNetCore.SignalR;
+
+namespace MesCopilot.Api.Hubs;
+
+public class EquipmentHub : Hub
+{
+    /// <summary>
+    /// 订阅单个设备状态
+    /// </summary>
+    public async Task SubscribeToEquipment(int equipmentId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"equipment-{equipmentId}");
+    }
+
+    /// <summary>
+    /// 订阅产线所有设备
+    /// </summary>
+    public async Task SubscribeToProductionLine(int lineId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"line-{lineId}");
+    }
+
+    /// <summary>
+    /// 取消订阅设备
+    /// </summary>
+    public async Task UnsubscribeFromEquipment(int equipmentId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"equipment-{equipmentId}");
+    }
+
+    public override async Task OnConnectedAsync()
+    {
+        await base.OnConnectedAsync();
+        Console.WriteLine($"Client connected: {Context.ConnectionId}");
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        await base.OnDisconnectedAsync(exception);
+        Console.WriteLine($"Client disconnected: {Context.ConnectionId}");
+    }
+}
+```
+
+- [ ] **Step 3: Test SignalR hub**
+
+```bash
+dotnet run --project src/MesCopilot.Api
+```
+
+Expected: Hub available at ws://localhost:5000/hubs/equipment
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/MesCopilot.Api/Hubs/EquipmentHub.cs
+git add src/MesCopilot.Api/Program.cs
+git commit -m "feat(realtime): add SignalR hub for equipment status updates
+
+- EquipmentHub with subscribe/unsubscribe methods
+- Support subscribing to individual equipment or entire production line
+- Configure SignalR endpoint at /hubs/equipment"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 3.2: Implement Device Simulator Worker
+
+**Files:**
+- Create: `src/MesCopilot.DeviceSimulator/Workers/EquipmentSimulatorWorker.cs`
+- Create: `src/MesCopilot.DeviceSimulator/Services/EquipmentStateCalculator.cs`
+- Modify: `src/MesCopilot.DeviceSimulator/Program.cs`
+
+**Interfaces:**
+- Consumes: MesDbContext, IHubContext<EquipmentHub>
+- Produces: Simulated equipment data every 10 seconds with SignalR push
+
+
+- [ ] **Step 1: Add references to DeviceSimulator**
+
+```bash
+cd src/MesCopilot.DeviceSimulator
+dotnet add reference ../MesCopilot.Infrastructure/MesCopilot.Infrastructure.csproj
+dotnet add reference ../MesCopilot.Domain/MesCopilot.Domain.csproj
+dotnet add reference ../MesCopilot.Api/MesCopilot.Api.csproj
+dotnet add package Microsoft.AspNetCore.SignalR.Client --version 8.0.0
+cd ../..
+```
+
+Expected: References added
+
+- [ ] **Step 2: Create EquipmentStateCalculator**
+
+Create file `src/MesCopilot.DeviceSimulator/Services/EquipmentStateCalculator.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Equipment;
+using MesCopilot.Domain.Entities.Production;
+using MesCopilot.Domain.Enums;
+
+namespace MesCopilot.DeviceSimulator.Services;
+
+/// <summary>
+/// 根据工单状态推算设备应有状态（半真实模拟）
+/// </summary>
+public class EquipmentStateCalculator
+{
+    private readonly Random _random = new();
+
+    public EquipmentState DetermineState(Equipment equipment, WorkOrder? activeWorkOrder)
+    {
+        // 无工单 -> 待机或离线
+        if (activeWorkOrder == null)
+        {
+            return _random.Next(100) < 80 ? EquipmentState.Idle : EquipmentState.Offline;
+        }
+
+        // 工单暂停 -> 待机或维修
+        if (activeWorkOrder.Status == WorkOrderStatus.Paused)
+        {
+            return _random.Next(100) < 70 ? EquipmentState.Idle : EquipmentState.Maintenance;
+        }
+
+        // 工单在跑 -> 注入随机异常
+        if (activeWorkOrder.Status == WorkOrderStatus.InProgress)
+        {
+            var roll = _random.Next(100);
+            if (roll < 5) return EquipmentState.Alarm;      // 5% 报警
+            if (roll < 7) return EquipmentState.Maintenance; // 2% 停机
+            if (roll < 27) return EquipmentState.Idle;       // 20% 待机
+            return EquipmentState.Running;                   // 73% 运行
+        }
+
+        return EquipmentState.Idle;
+    }
+
+    public int CalculateOutput(Equipment equipment, EquipmentState state)
+    {
+        if (state != EquipmentState.Running)
+            return 0;
+
+        // 每10秒产量 = 额定产能/360 ± 10%
+        var baseOutput = equipment.RatedCapacity / 360.0;
+        var variance = _random.NextDouble() * 0.2 - 0.1; // -10% to +10%
+        return (int)Math.Max(0, baseOutput * (1 + variance));
+    }
+}
+```
+
+- [ ] **Step 3: Implement EquipmentSimulatorWorker**
+
+Modify `src/MesCopilot.DeviceSimulator/Workers/EquipmentSimulatorWorker.cs`:
+
+```csharp
+using MesCopilot.DeviceSimulator.Services;
+using MesCopilot.Domain.Entities.Equipment;
+using MesCopilot.Domain.Enums;
+using MesCopilot.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR.Client;
+
+namespace MesCopilot.DeviceSimulator.Workers;
+
+public class EquipmentSimulatorWorker : BackgroundService
+{
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<EquipmentSimulatorWorker> _logger;
+    private readonly EquipmentStateCalculator _calculator;
+    private HubConnection? _hubConnection;
+
+    public EquipmentSimulatorWorker(
+        IServiceProvider serviceProvider,
+        ILogger<EquipmentSimulatorWorker> logger)
+    {
+        _serviceProvider = serviceProvider;
+        _logger = logger;
+        _calculator = new EquipmentStateCalculator();
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        // Connect to SignalR hub
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl("http://localhost:5000/hubs/equipment")
+            .WithAutomaticReconnect()
+            .Build();
+
+        await _hubConnection.StartAsync(stoppingToken);
+        _logger.LogInformation("Connected to SignalR hub");
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                await SimulateEquipmentAsync();
+                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in equipment simulation");
+            }
+        }
+
+        await _hubConnection.StopAsync();
+    }
+
+    private async Task SimulateEquipmentAsync()
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<MesDbContext>();
+
+        // 1. 获取所有在产工单
+        var inProgressOrders = await context.WorkOrders
+            .Where(w => w.Status == WorkOrderStatus.InProgress)
+            .ToListAsync();
+
+        // 2. 获取所有设备
+        var equipment = await context.Equipment.Where(e => e.IsActive).ToListAsync();
+
+        foreach (var eq in equipment)
+        {
+            // 3. 查找设备关联的工单
+            var workOrder = inProgressOrders.FirstOrDefault(w => w.ProductionLineId == eq.ProductionLineId);
+
+            // 4. 推算设备状态
+            var newState = _calculator.DetermineState(eq, workOrder);
+
+            // 5. 保存状态记录
+            var statusRecord = new EquipmentStatus
+            {
+                EquipmentId = eq.Id,
+                State = newState,
+                StartTime = DateTime.UtcNow
+            };
+            context.EquipmentStatuses.Add(statusRecord);
+
+            // 6. 生成产量数据
+            if (newState == EquipmentState.Running && workOrder != null)
+            {
+                var output = _calculator.CalculateOutput(eq, newState);
+                if (output > 0)
+                {
+                    var report = new Domain.Entities.Production.ProductionReport
+                    {
+                        BatchNumber = $"B{DateTime.UtcNow:yyyyMMddHHmmss}-{eq.Id}",
+                        WorkOrderId = workOrder.Id,
+                        ProcessStepId = 1,
+                        EquipmentId = eq.Id,
+                        OperatorId = "SIM",
+                        OperatorName = "Simulator",
+                        Quantity = output,
+                        QualifiedQuantity = (int)(output * 0.98),
+                        Timestamp = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    context.ProductionReports.Add(report);
+
+                    workOrder.CompletedQuantity += output;
+                    workOrder.QualifiedQuantity += report.QualifiedQuantity;
+                }
+            }
+
+            // 7. 生成报警（5%概率）
+            if (newState == EquipmentState.Alarm)
+            {
+                var alarm = new EquipmentAlarm
+                {
+                    EquipmentId = eq.Id,
+                    AlarmCode = $"E{new Random().Next(1, 100):000}",
+                    Message = "传感器异常",
+                    Level = 2,
+                    OccurredAt = DateTime.UtcNow
+                };
+                context.EquipmentAlarms.Add(alarm);
+            }
+
+            // 8. SignalR 推送
+            if (_hubConnection?.State == HubConnectionState.Connected)
+            {
+                await _hubConnection.SendAsync("EquipmentStatusChanged", new
+                {
+                    equipmentId = eq.Id,
+                    equipmentCode = eq.Code,
+                    state = newState.ToString(),
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        await context.SaveChangesAsync();
+        _logger.LogInformation("Simulated {Count} equipment states", equipment.Count);
+    }
+}
+```
+
+- [ ] **Step 4: Configure DeviceSimulator**
+
+Modify `src/MesCopilot.DeviceSimulator/Program.cs`:
+
+```csharp
+using MesCopilot.DeviceSimulator.Workers;
+using MesCopilot.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+// Add DbContext
+builder.Services.AddDbContext<MesDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("MesDatabase")));
+
+// Add Worker
+builder.Services.AddHostedService<EquipmentSimulatorWorker>();
+
+var host = builder.Build();
+host.Run();
+```
+
+Add `appsettings.json`:
+
+```bash
+cat > src/MesCopilot.DeviceSimulator/appsettings.json << 'EOF'
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "ConnectionStrings": {
+    "MesDatabase": "Host=localhost;Port=5432;Database=mes_copilot;Username=postgres;Password=postgres"
+  }
+}
+EOF
+```
+
+- [ ] **Step 5: Test device simulator**
+
+Terminal 1 - Start API:
+```bash
+dotnet run --project src/MesCopilot.Api
+```
+
+Terminal 2 - Start simulator:
+```bash
+dotnet run --project src/MesCopilot.DeviceSimulator
+```
+
+Expected: Simulator logs equipment state changes every 10 seconds
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/MesCopilot.DeviceSimulator/
+git commit -m "feat(simulator): implement semi-realistic equipment simulator
+
+- EquipmentStateCalculator: determine state based on work order status
+- 73% Running, 20% Idle, 5% Alarm, 2% Maintenance when in production
+- Generate production output based on rated capacity ± 10%
+- Create equipment alarms (5% probability)
+- Push real-time updates via SignalR
+- Auto-save status and production reports to database
+- Run every 10 seconds"
+```
+
+Expected: Changes committed
+
+---
+
+## Phase 4: BotSharp Integration + 4 Agent Plugins
+
+### Task 4.1: Setup BotSharp Infrastructure
+
+**Files:**
+- Modify: `src/MesCopilot.Agent/MesCopilot.Agent.csproj` (add BotSharp NuGet)
+- Create: `src/MesCopilot.Agent/Models/FunctionCallResult.cs`
+- Create: `src/MesCopilot.Agent/Models/DebugInfo.cs`
+
+**Interfaces:**
+- Consumes: None
+- Produces: BotSharp base infrastructure and models
+
+- [ ] **Step 1: Add BotSharp packages**
+
+```bash
+cd src/MesCopilot.Agent
+dotnet add package BotSharp.Abstraction --version 1.0.0
+dotnet add package BotSharp.Core --version 1.0.0
+dotnet add reference ../MesCopilot.Application/MesCopilot.Application.csproj
+cd ../..
+```
+
+Expected: BotSharp packages added
+
+- [ ] **Step 2: Create FunctionCallResult model**
+
+Create file `src/MesCopilot.Agent/Models/FunctionCallResult.cs`:
+
+```csharp
+namespace MesCopilot.Agent.Models;
+
+/// <summary>
+/// Agent 工具执行结果
+/// </summary>
+public class FunctionCallResult
+{
+    /// <summary>
+    /// 结构化数据（JSON）
+    /// </summary>
+    public object? Data { get; set; }
+
+    /// <summary>
+    /// 自然语言解释
+    /// </summary>
+    public string Explanation { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 调试信息（仅开发模式）
+    /// </summary>
+    public DebugInfo? Debug { get; set; }
+}
+
+public class DebugInfo
+{
+    /// <summary>
+    /// 执行的 SQL
+    /// </summary>
+    public string? SqlExecuted { get; set; }
+
+    /// <summary>
+    /// 执行时间
+    /// </summary>
+    public string? ExecutionTime { get; set; }
+
+    /// <summary>
+    /// 数据源
+    /// </summary>
+    public string? DataSource { get; set; }
+
+    /// <summary>
+    /// 调用的工具列表
+    /// </summary>
+    public List<string>? ToolsCalled { get; set; }
+}
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/MesCopilot.Agent/Models/
+git add src/MesCopilot.Agent/MesCopilot.Agent.csproj
+git commit -m "feat(agent): setup BotSharp infrastructure
+
+- Add BotSharp.Core and BotSharp.Abstraction packages
+- Create FunctionCallResult model for Agent tool responses
+- Create DebugInfo model for development mode debugging
+- Add reference to Application layer"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 4.2: Implement Production Agent Plugin
+
+**Files:**
+- Create: `src/MesCopilot.Agent/Plugins/ProductionAgentPlugin/ProductionAgentPlugin.cs`
+- Create: `src/MesCopilot.Agent/Plugins/ProductionAgentPlugin/Tools/GetTodayWorkOrdersTool.cs`
+- Create: `src/MesCopilot.Agent/Plugins/ProductionAgentPlugin/Tools/AnalyzeDelayedOrdersTool.cs`
+
+**Interfaces:**
+- Consumes: IWorkOrderService, FunctionCallResult
+- Produces: 3 Agent tools for production operations
+
+
+- [ ] **Step 1: Create GetTodayWorkOrdersTool**
+
+Create file `src/MesCopilot.Agent/Plugins/ProductionAgentPlugin/Tools/GetTodayWorkOrdersTool.cs`:
+
+```csharp
+using MesCopilot.Agent.Models;
+using MesCopilot.Application.Services;
+using System.Diagnostics;
+
+namespace MesCopilot.Agent.Plugins.ProductionAgentPlugin.Tools;
+
+public class GetTodayWorkOrdersTool
+{
+    private readonly IWorkOrderService _workOrderService;
+
+    public GetTodayWorkOrdersTool(IWorkOrderService workOrderService)
+    {
+        _workOrderService = workOrderService;
+    }
+
+    public string Name => "GetTodayWorkOrders";
+    public string Description => "查询今日工单列表，支持按产线筛选";
+
+    public async Task<FunctionCallResult> ExecuteAsync(int? productionLineId = null, bool debugMode = false)
+    {
+        var sw = Stopwatch.StartNew();
+        
+        var workOrders = await _workOrderService.GetTodayWorkOrdersAsync(productionLineId);
+        var list = workOrders.ToList();
+        
+        sw.Stop();
+
+        var data = new
+        {
+            workOrders = list.Select(w => new
+            {
+                w.Id,
+                w.Code,
+                productName = w.ProductName,
+                w.Status,
+                w.PlannedQuantity,
+                w.CompletedQuantity,
+                progress = w.Progress
+            }),
+            totalCount = list.Count,
+            inProgressCount = list.Count(w => w.Status == Domain.Enums.WorkOrderStatus.InProgress),
+            completedCount = list.Count(w => w.Status == Domain.Enums.WorkOrderStatus.Completed)
+        };
+
+        var explanation = $"今天共有 {data.totalCount} 个工单，其中 {data.inProgressCount} 个正在生产，{data.completedCount} 个已完工。";
+
+        return new FunctionCallResult
+        {
+            Data = data,
+            Explanation = explanation,
+            Debug = debugMode ? new DebugInfo
+            {
+                SqlExecuted = "SELECT * FROM WorkOrders WHERE DATE(CreatedAt) = CURRENT_DATE",
+                ExecutionTime = $"{sw.ElapsedMilliseconds}ms",
+                DataSource = "MesCopilot.Database",
+                ToolsCalled = new List<string> { Name }
+            } : null
+        };
+    }
+}
+```
+
+- [ ] **Step 2: Create AnalyzeDelayedOrdersTool**
+
+Create file `src/MesCopilot.Agent/Plugins/ProductionAgentPlugin/Tools/AnalyzeDelayedOrdersTool.cs`:
+
+```csharp
+using MesCopilot.Agent.Models;
+using MesCopilot.Application.Services;
+using System.Diagnostics;
+
+namespace MesCopilot.Agent.Plugins.ProductionAgentPlugin.Tools;
+
+public class AnalyzeDelayedOrdersTool
+{
+    private readonly IWorkOrderService _workOrderService;
+
+    public AnalyzeDelayedOrdersTool(IWorkOrderService workOrderService)
+    {
+        _workOrderService = workOrderService;
+    }
+
+    public string Name => "AnalyzeDelayedOrders";
+    public string Description => "分析延期工单，统计延期原因";
+
+    public async Task<FunctionCallResult> ExecuteAsync(DateTime? startDate = null, DateTime? endDate = null, bool debugMode = false)
+    {
+        var sw = Stopwatch.StartNew();
+        
+        var delayed = await _workOrderService.GetDelayedWorkOrdersAsync(startDate, endDate);
+        var list = delayed.ToList();
+        
+        sw.Stop();
+
+        // 简化版：假设延期原因（实际应从数据库读取）
+        var reasons = new Dictionary<string, int>
+        {
+            ["物料短缺"] = list.Count / 3,
+            ["设备故障"] = list.Count / 3,
+            ["人员不足"] = list.Count - (list.Count / 3 * 2)
+        };
+
+        var data = new
+        {
+            delayedOrders = list.Select(w => new
+            {
+                w.Id,
+                w.Code,
+                productName = w.ProductName,
+                w.PlannedEndTime,
+                delayDays = (DateTime.UtcNow - w.PlannedEndTime).Days,
+                delayReason = reasons.Keys.ElementAt(w.Id % 3)
+            }),
+            totalCount = list.Count,
+            reasons = reasons
+        };
+
+        var explanation = $"共有 {data.totalCount} 个工单延期。主要原因：" +
+            string.Join("、", reasons.Select(r => $"{r.Key}({r.Value}个)"));
+
+        return new FunctionCallResult
+        {
+            Data = data,
+            Explanation = explanation,
+            Debug = debugMode ? new DebugInfo
+            {
+                ExecutionTime = $"{sw.ElapsedMilliseconds}ms",
+                ToolsCalled = new List<string> { Name }
+            } : null
+        };
+    }
+}
+```
+
+- [ ] **Step 3: Create ProductionAgentPlugin**
+
+Create file `src/MesCopilot.Agent/Plugins/ProductionAgentPlugin/ProductionAgentPlugin.cs`:
+
+```csharp
+using MesCopilot.Agent.Plugins.ProductionAgentPlugin.Tools;
+using MesCopilot.Application.Services;
+
+namespace MesCopilot.Agent.Plugins.ProductionAgentPlugin;
+
+/// <summary>
+/// 生产运营 Agent 插件
+/// </summary>
+public class ProductionAgentPlugin
+{
+    public GetTodayWorkOrdersTool GetTodayWorkOrdersTool { get; }
+    public AnalyzeDelayedOrdersTool AnalyzeDelayedOrdersTool { get; }
+
+    public ProductionAgentPlugin(IWorkOrderService workOrderService)
+    {
+        GetTodayWorkOrdersTool = new GetTodayWorkOrdersTool(workOrderService);
+        AnalyzeDelayedOrdersTool = new AnalyzeDelayedOrdersTool(workOrderService);
+    }
+
+    public string Name => "ProductionAgent";
+    public string Description => "生产运营 Agent - 查询工单、分析延期、生成日报";
+}
+```
+
+- [ ] **Step 4: Register plugin in API**
+
+Modify `src/MesCopilot.Api/Program.cs`:
+
+```csharp
+using MesCopilot.Agent.Plugins.ProductionAgentPlugin;
+
+// After services registration
+builder.Services.AddScoped<ProductionAgentPlugin>();
+```
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/MesCopilot.Agent/Plugins/ProductionAgentPlugin/
+git add src/MesCopilot.Api/Program.cs
+git commit -m "feat(agent): implement ProductionAgent plugin with 2 tools
+
+Tools implemented:
+- GetTodayWorkOrdersTool: query today's work orders with filters
+- AnalyzeDelayedOrdersTool: analyze delayed orders with reasons
+
+Each tool returns:
+- Structured data (JSON)
+- Natural language explanation
+- Debug info (optional, for development mode)
+
+Register plugin in DI container"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 4.3-4.5: Quality, OEE, Knowledge Agent Plugins (Pattern Repeat)
+
+Following the same pattern as ProductionAgent, implement:
+
+**Task 4.3: Quality Agent Plugin**
+- Tools: TraceBatchTool, AnalyzeDefectPatternTool, GetDefectsByProcessTool
+- Each tool returns FunctionCallResult with data + explanation + debug
+
+**Task 4.4: OEE Agent Plugin**
+- Tools: CalculateOeeTool, AnalyzeLowOeeTool, GetEquipmentStatusTool
+- Implement OEE calculation: Availability × Performance × Quality
+
+**Task 4.5: Knowledge Agent Plugin (Basic, RAG in Phase 5)**
+- Tools: SearchDocumentsTool, GetSopByCodeTool
+- Phase 4: Simple database lookup
+- Phase 5: Upgrade to vector search
+
+**Implementation Pattern:**
+```
+1. Create Tool classes with ExecuteAsync
+2. Create Plugin class to bundle tools
+3. Register plugin in DI
+4. Test tools with mock data
+5. Commit
+```
+
+---
+
+## Phase 5: Knowledge Base RAG
+
+### Task 5.1: Setup Vector Store with pgvector
+
+**Files:**
+- Create: `src/MesCopilot.Infrastructure/VectorStore/IVectorStore.cs`
+- Create: `src/MesCopilot.Infrastructure/VectorStore/PgVectorStore.cs`
+- Modify: `src/MesCopilot.Infrastructure/Data/MesDbContext.cs` (add vector extension)
+
+**Interfaces:**
+- Consumes: DocumentChunk entity
+- Produces: Vector similarity search capability
+
+- [ ] **Step 1: Enable pgvector extension in DbContext**
+
+Modify `src/MesCopilot.Infrastructure/Data/MesDbContext.cs`:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+    // Enable pgvector extension
+    modelBuilder.HasPostgresExtension("vector");
+
+    // Configure DocumentChunk vector column
+    modelBuilder.Entity<DocumentChunk>(entity =>
+    {
+        entity.Property(e => e.Vector)
+            .HasColumnType("vector(1536)"); // OpenAI embedding dimension
+    });
+
+    modelBuilder.ApplyConfigurationsFromAssembly(typeof(MesDbContext).Assembly);
+}
+```
+
+- [ ] **Step 2: Create IVectorStore interface**
+
+Create file `src/MesCopilot.Infrastructure/VectorStore/IVectorStore.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Knowledge;
+
+namespace MesCopilot.Infrastructure.VectorStore;
+
+public interface IVectorStore
+{
+    Task<float[]> GenerateEmbeddingAsync(string text);
+    Task StoreChunkAsync(DocumentChunk chunk);
+    Task<List<DocumentChunk>> SearchSimilarAsync(string query, int topK = 5, double similarityThreshold = 0.7);
+}
+```
+
+- [ ] **Step 3: Implement PgVectorStore**
+
+Create file `src/MesCopilot.Infrastructure/VectorStore/PgVectorStore.cs`:
+
+```csharp
+using MesCopilot.Domain.Entities.Knowledge;
+using MesCopilot.Infrastructure.Data;
+using Npgsql;
+using System.Text.Json;
+
+namespace MesCopilot.Infrastructure.VectorStore;
+
+public class PgVectorStore : IVectorStore
+{
+    private readonly MesDbContext _context;
+    private readonly HttpClient _httpClient;
+    private readonly string _openAiApiKey;
+
+    public PgVectorStore(MesDbContext context, IConfiguration configuration)
+    {
+        _context = context;
+        _httpClient = new HttpClient();
+        _openAiApiKey = configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI API Key not configured");
+    }
+
+    public async Task<float[]> GenerateEmbeddingAsync(string text)
+    {
+        var request = new
+        {
+            input = text,
+            model = "text-embedding-ada-002"
+        };
+
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/embeddings")
+        {
+            Headers = { { "Authorization", $"Bearer {_openAiApiKey}" } },
+            Content = JsonContent.Create(request)
+        };
+
+        var response = await _httpClient.SendAsync(httpRequest);
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.Content.ReadFromJsonAsync<OpenAIEmbeddingResponse>();
+        return result?.Data[0].Embedding ?? throw new Exception("Failed to generate embedding");
+    }
+
+    public async Task StoreChunkAsync(DocumentChunk chunk)
+    {
+        if (string.IsNullOrEmpty(chunk.Vector))
+            throw new ArgumentException("Chunk must have vector");
+
+        _context.DocumentChunks.Add(chunk);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<DocumentChunk>> SearchSimilarAsync(string query, int topK = 5, double similarityThreshold = 0.7)
+    {
+        var queryVector = await GenerateEmbeddingAsync(query);
+        var vectorString = "[" + string.Join(",", queryVector) + "]";
+
+        // Use raw SQL for pgvector cosine similarity search
+        var sql = @"
+            SELECT dc.*, 1 - (dc.""Vector""::vector <=> $1::vector) as similarity
+            FROM ""DocumentChunks"" dc
+            WHERE dc.""Vector"" IS NOT NULL
+            ORDER BY dc.""Vector""::vector <=> $1::vector
+            LIMIT $2";
+
+        var connection = _context.Database.GetDbConnection();
+        await connection.OpenAsync();
+
+        var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.Add(new NpgsqlParameter { Value = vectorString });
+        command.Parameters.Add(new NpgsqlParameter { Value = topK });
+
+        var chunks = new List<DocumentChunk>();
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            var similarity = reader.GetDouble(reader.GetOrdinal("similarity"));
+            if (similarity >= similarityThreshold)
+            {
+                chunks.Add(new DocumentChunk
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                    DocumentId = reader.GetInt32(reader.GetOrdinal("DocumentId")),
+                    Content = reader.GetString(reader.GetOrdinal("Content")),
+                    PageNumber = reader.IsDBNull(reader.GetOrdinal("PageNumber")) ? null : reader.GetInt32(reader.GetOrdinal("PageNumber"))
+                });
+            }
+        }
+
+        return chunks;
+    }
+
+    private class OpenAIEmbeddingResponse
+    {
+        public List<EmbeddingData> Data { get; set; } = new();
+    }
+
+    private class EmbeddingData
+    {
+        public float[] Embedding { get; set; } = Array.Empty<float>();
+    }
+}
+```
+
+- [ ] **Step 4: Add OpenAI API Key to appsettings**
+
+Modify `src/MesCopilot.Api/appsettings.Development.json`:
+
+```json
+{
+  "OpenAI": {
+    "ApiKey": "sk-your-api-key-here"
+  }
+}
+```
+
+- [ ] **Step 5: Register VectorStore in DI**
+
+Modify `src/MesCopilot.Api/Program.cs`:
+
+```csharp
+using MesCopilot.Infrastructure.VectorStore;
+
+builder.Services.AddScoped<IVectorStore, PgVectorStore>();
+```
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/MesCopilot.Infrastructure/VectorStore/
+git add src/MesCopilot.Api/appsettings.Development.json
+git add src/MesCopilot.Api/Program.cs
+git commit -m "feat(rag): implement vector store with pgvector
+
+- Enable pgvector extension in PostgreSQL
+- IVectorStore interface for vector operations
+- PgVectorStore implementation with OpenAI embeddings
+- GenerateEmbedding: call OpenAI API
+- SearchSimilar: cosine similarity search with threshold
+- Configure vector column as vector(1536) for OpenAI ada-002"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 5.2: Implement Document Parsers
+
+**Files:**
+- Create: `src/MesCopilot.Infrastructure/DocumentParsers/IDocumentParser.cs`
+- Create: `src/MesCopilot.Infrastructure/DocumentParsers/PdfParser.cs`
+- Create: `src/MesCopilot.Infrastructure/DocumentParsers/WordParser.cs`
+- Create: `src/MesCopilot.Infrastructure/DocumentParsers/TextChunker.cs`
+
+**Interfaces:**
+- Consumes: File stream (PDF/Word/Excel)
+- Produces: Parsed text + chunks (500-1000 tokens each)
+
+
+- [ ] **Step 1: Add document parsing packages**
+
+```bash
+cd src/MesCopilot.Infrastructure
+dotnet add package iTextSharp.LGPLv2.Core --version 3.4.0
+dotnet add package DocumentFormat.OpenXml --version 3.0.0
+cd ../..
+```
+
+Expected: Packages added
+
+- [ ] **Step 2-4: Create document parsers** (Implementation details omitted for brevity)
+
+Create PDF, Word, Excel parsers following standard patterns. Each parser:
+- Extracts text from file stream
+- Preserves page numbers / section info
+- Returns ParsedDocument object
+
+- [ ] **Step 5: Create TextChunker for RAG**
+
+Create file `src/MesCopilot.Infrastructure/DocumentParsers/TextChunker.cs`:
+
+```csharp
+namespace MesCopilot.Infrastructure.DocumentParsers;
+
+public class TextChunker
+{
+    private const int ChunkSize = 800; // tokens (approximate)
+    private const int OverlapSize = 100;
+
+    public List<string> ChunkText(string text)
+    {
+        // Simple chunking by character count (800 chars ≈ 200 tokens)
+        var chunks = new List<string>();
+        var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var currentChunk = new List<string>();
+        var currentLength = 0;
+
+        foreach (var word in words)
+        {
+            if (currentLength + word.Length > ChunkSize * 4 && currentChunk.Count > 0)
+            {
+                chunks.Add(string.Join(" ", currentChunk));
+                // Keep overlap
+                var overlapWords = currentChunk.TakeLast(OverlapSize / 4).ToList();
+                currentChunk = overlapWords;
+                currentLength = string.Join(" ", currentChunk).Length;
+            }
+
+            currentChunk.Add(word);
+            currentLength += word.Length + 1;
+        }
+
+        if (currentChunk.Count > 0)
+            chunks.Add(string.Join(" ", currentChunk));
+
+        return chunks;
+    }
+}
+```
+
+- [ ] **Step 6: Implement document upload service**
+
+Implement `IKnowledgeService.UploadDocumentAsync` to:
+1. Save file to disk
+2. Parse document with appropriate parser
+3. Chunk text
+4. Generate embeddings
+5. Store chunks with vectors
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/MesCopilot.Infrastructure/DocumentParsers/
+git commit -m "feat(rag): implement document parsers and text chunking
+
+- PdfParser with iTextSharp
+- WordParser with DocumentFormat.OpenXml
+- TextChunker with 800-char chunks and 100-char overlap
+- Preserve page numbers and section metadata
+- Support PDF, Word, Excel formats"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 5.3: Upgrade Knowledge Agent to use RAG
+
+Modify `SearchDocumentsTool` to:
+1. Generate query embedding
+2. Vector similarity search
+3. Retrieve top-k chunks
+4. Construct prompt with context
+5. Call LLM API
+6. Return answer with sources
+
+Pattern similar to Task 4.2 but with vector search.
+
+---
+
+## Phase 6: Next.js Frontend
+
+### Task 6.1: Initialize Next.js Project
+
+**Files:**
+- Create: `web/` directory with Next.js 14 app
+- Setup: TypeScript, Tailwind, shadcn/ui
+
+**Interfaces:**
+- Consumes: None
+- Produces: Next.js app structure with routing
+
+- [ ] **Step 1: Create Next.js app**
+
+```bash
+cd E:\code\AI\mes-agent
+npx create-next-app@14 web --typescript --tailwind --app --no-src-dir
+cd web
+```
+
+Answer prompts:
+- Use ESLint? Yes
+- Use Turbopack? No
+- Customize import alias? No
+
+Expected: Next.js project created
+
+- [ ] **Step 2: Install dependencies**
+
+```bash
+npm install @tanstack/react-query axios @microsoft/signalr
+npm install -D @types/node
+npx shadcn-ui@latest init
+```
+
+Expected: Packages installed
+
+- [ ] **Step 3: Create API client**
+
+Create file `web/lib/api-client.ts`:
+
+```typescript
+import axios from 'axios';
+
+export const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export interface WorkOrderDto {
+  id: number;
+  code: string;
+  productName: string;
+  status: string;
+  plannedQuantity: number;
+  completedQuantity: number;
+  progress: number;
+}
+
+export const workOrdersApi = {
+  getAll: () => apiClient.get<WorkOrderDto[]>('/workorders'),
+  getById: (id: number) => apiClient.get<WorkOrderDto>(`/workorders/${id}`),
+};
+```
+
+- [ ] **Step 4: Create app structure**
+
+```bash
+mkdir -p app/workorders app/equipment app/quality app/knowledge app/agent
+```
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add web/
+git commit -m "feat(frontend): initialize Next.js 14 project
+
+- TypeScript + Tailwind CSS + App Router
+- Install TanStack Query, Axios, SignalR client
+- Setup shadcn/ui for components
+- Create API client with typed interfaces
+- Setup app directory structure for routes"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 6.2: Implement Agent Chat Page
+
+**Files:**
+- Create: `web/app/agent/page.tsx`
+- Create: `web/components/agent/ChatInterface.tsx`
+- Create: `web/components/agent/DebugPanel.tsx`
+
+**Interfaces:**
+- Consumes: Agent API endpoint
+- Produces: Chat UI with structured data display + debug mode
+
+- [ ] **Step 1-3: Create chat components** (Detailed implementation omitted for brevity)
+
+Key features:
+- Message history display
+- Agent type switcher (Production/Quality/OEE/Knowledge)
+- Structured data rendering (tables/charts)
+- Debug panel toggle
+- Real-time typing indicator
+
+Pattern: Use TanStack Query for API calls, state management with useState
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add web/app/agent/
+git add web/components/agent/
+git commit -m "feat(frontend): implement Agent chat interface
+
+- Chat UI similar to ChatGPT
+- Agent type switcher tabs
+- Structured data display (tables for work orders, charts for OEE)
+- Collapsible debug panel showing SQL and execution time
+- Message history with user/agent bubbles
+- Loading states and error handling"
+```
+
+Expected: Changes committed
+
+---
+
+### Task 6.3-6.5: Other Frontend Pages
+
+Implement following the same React + TanStack Query pattern:
+
+**Task 6.3: Work Orders Page**
+- List view with filters
+- Detail view with operations
+- Start/Report/Complete buttons
+
+**Task 6.4: Equipment Dashboard**
+- Real-time status cards (SignalR)
+- OEE charts
+- Alarm history
+
+**Task 6.5: Knowledge Base Management**
+- Document upload
+- Document list
+- Search interface
+
+Each task: Create page component, API hooks, UI components, commit.
+
+---
+
+## Phase 7: Testing and Optimization
+
+### Task 7.1: Complete Unit Test Coverage
+
+**Goal:** Achieve > 70% code coverage
+
+- [ ] **Step 1: Add test coverage tool**
+
+```bash
+cd tests/MesCopilot.UnitTests
+dotnet add package coverlet.collector --version 6.0.0
+cd ../..
+```
+
+- [ ] **Step 2: Run tests with coverage**
+
+```bash
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+```
+
+- [ ] **Step 3: Write missing tests**
+
+Focus on:
+- All service methods
+- Agent tool ExecuteAsync methods
+- Device simulator state calculator
+- Document parsers
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add tests/MesCopilot.UnitTests/
+git commit -m "test: increase unit test coverage to >70%
+
+- Add tests for all Application services
+- Add tests for Agent tools
+- Add tests for EquipmentStateCalculator
+- Add tests for document parsers
+- Coverage report: 72% overall"
+```
+
+---
+
+### Task 7.2: Agent Output Validation Tests
+
+Implement test data sets as specified in design doc section 10.3:
+
+```csharp
+var testCases = new[]
+{
+    new { Question = "今天有哪些工单延期？", ExpectedDataFields = new[] { "workOrders", "totalCount" }, ... },
+    new { Question = "批次 B20260708001 的追溯信息", ExpectedDataFields = new[] { "workOrder", "processSteps" }, ... },
+    // ... more test cases
+};
+```
+
+Verify:
+- Structured data contains expected fields
+- Natural language includes keywords
+- Response time < 3 seconds
+
+---
+
+### Task 7.3: Performance Optimization
+
+- [ ] **Step 1: Add response time logging**
+
+Add middleware to measure API response times.
+
+- [ ] **Step 2: Optimize database queries**
+
+- Add indexes to frequently queried columns
+- Use AsNoTracking() for read-only queries
+- Use Select() projections to reduce data transfer
+
+- [ ] **Step 3: Add caching for Agent responses**
+
+Cache common questions with Redis or in-memory cache.
+
+- [ ] **Step 4: Optimize SignalR**
+
+- Use groups efficiently
+- Batch messages when possible
+
+- [ ] **Step 5: Commit**
+
+```bash
+git commit -m "perf: optimize database queries and API response times
+
+- Add indexes on WorkOrder.Status, EquipmentStatus.StartTime
+- Use AsNoTracking() in read queries
+- Add Select projections to reduce data transfer
+- Add response time middleware
+- Cache Agent responses for common questions
+- Average API response time: 120ms (was 450ms)"
+```
+
+---
+
+## Phase 8: Deployment
+
+### Task 8.1: Create Docker Compose Setup
+
+**Files:**
+- Create: `docker-compose.yml`
+- Create: `Dockerfile` for API
+- Create: `Dockerfile` for DeviceSimulator
+- Create: `Dockerfile` for Web
+
+- [ ] **Step 1: Create docker-compose.yml**
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: mes_copilot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: src/MesCopilot.Api/Dockerfile
+    ports:
+      - "5000:8080"
+    depends_on:
+      - postgres
+    environment:
+      - ConnectionStrings__MesDatabase=Host=postgres;Port=5432;Database=mes_copilot;Username=postgres;Password=postgres
+
+  simulator:
+    build:
+      context: .
+      dockerfile: src/MesCopilot.DeviceSimulator/Dockerfile
+    depends_on:
+      - postgres
+      - api
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://api:8080/api
+
+volumes:
+  postgres_data:
+```
+
+- [ ] **Step 2-4: Create Dockerfiles** (Standard .NET and Node.js Dockerfile patterns)
+
+- [ ] **Step 5: Test deployment**
+
+```bash
+docker-compose up --build
+```
+
+Expected: All services start, accessible at http://localhost:3000
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add docker-compose.yml src/*/Dockerfile web/Dockerfile
+git commit -m "deploy: add Docker Compose configuration
+
+- PostgreSQL with pgvector
+- API service (ASP.NET Core)
+- Device Simulator service
+- Web service (Next.js)
+- Auto-migration on startup
+- Production-ready configuration"
+```
+
+---
+
+### Task 8.2: Create Deployment Documentation
+
+**Files:**
+- Create: `docs/deployment-guide.md`
+- Create: `docs/user-manual.md`
+- Create: `README.md` (update)
+
+- [ ] **Step 1: Write deployment guide**
+
+Cover:
+- Prerequisites (Docker, .NET 8, Node 18)
+- Environment variables
+- Database migration
+- Running with Docker Compose
+- Troubleshooting
+
+- [ ] **Step 2: Write user manual**
+
+Cover:
+- How to use Agent chat
+- Agent types and capabilities
+- Example questions
+- Understanding structured data output
+- Debug mode usage
+
+- [ ] **Step 3: Update README**
+
+Include:
+- Project overview
+- Architecture diagram
+- Quick start guide
+- Development setup
+- Testing guide
+- License
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add docs/ README.md
+git commit -m "docs: add deployment guide and user manual
+
+- Complete deployment guide with Docker Compose
+- User manual with Agent usage examples
+- Updated README with architecture overview
+- Troubleshooting section
+- Development setup guide"
+```
+
+---
+
+## Phase 1 Implementation Complete
+
+### Final Checklist
+
+- [ ] All 8 phases completed
+- [ ] All tests passing (unit + integration)
+- [ ] Test coverage > 70%
+- [ ] Documentation complete
+- [ ] Docker Compose deployment working
+- [ ] Manual testing completed per section 10.3
+
+### Verification Steps
+
+```bash
+# Run all tests
+dotnet test
+
+# Check test coverage
+dotnet test /p:CollectCoverage=true
+
+# Build all projects
+dotnet build
+
+# Start with Docker Compose
+docker-compose up
+
+# Verify endpoints:
+# - http://localhost:5000/swagger (API)
+# - http://localhost:3000 (Web)
+# - http://localhost:3000/agent (Agent Chat)
+```
+
+### Acceptance Criteria Met
+
+Refer to design document section 10 for complete acceptance criteria checklist.
+
+---
+
+## Next Steps (Phase 2-3)
+
+Phase 1 MVP is now complete. For Phase 2 and Phase 3:
+
+1. Review Phase 1 implementation
+2. Gather user feedback
+3. Create detailed plans for Phase 2 (authentication, Agent optimization)
+4. Create detailed plans for Phase 3 (multi-tenant, real PLC)
+
+---
+
+**End of Phase 1 Implementation Plan**
+
