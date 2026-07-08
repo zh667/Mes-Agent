@@ -157,6 +157,61 @@ public class KnowledgeServiceTests
         Assert.Equal(0.6, vectorStore.LastSimilarityThreshold);
     }
 
+    [Fact]
+    public async Task SearchSimilarAsync_ShouldSkipChunksWithMissingDocuments()
+    {
+        await using MesDbContext context = CreateContext();
+        var document = new Document
+        {
+            Title = "SOP A102 Alarm Handling",
+            FileName = "sop-a102.pdf",
+            FilePath = "/docs/sop-a102.pdf",
+            Type = DocumentType.Sop,
+            FileSize = 2048,
+            MimeType = "application/pdf",
+            UploadedAt = DateTime.UtcNow,
+            VectorizationStatus = "completed"
+        };
+        context.Documents.Add(document);
+        await context.SaveChangesAsync();
+
+        List<DocumentChunk> chunks =
+        [
+            new DocumentChunk
+            {
+                Id = 10,
+                DocumentId = 999,
+                Sequence = 1,
+                Content = "Stale search result.",
+                TokenCount = 3
+            },
+            new DocumentChunk
+            {
+                Id = 11,
+                DocumentId = document.Id,
+                Sequence = 2,
+                Content = "Alarm A102 requires checking the sensor.",
+                TokenCount = 7
+            }
+        ];
+        var service = new KnowledgeService(context, [], new TextChunker(), new FakeVectorStore(chunks));
+
+        IReadOnlyList<DocumentSearchResultDto> results = await service.SearchSimilarAsync("A102 alarm");
+
+        DocumentSearchResultDto result = Assert.Single(results);
+        Assert.Equal(11, result.ChunkId);
+        Assert.Equal(document.Id, result.DocumentId);
+    }
+
+    [Fact]
+    public async Task SearchSimilarAsync_TopKAboveLimit_ShouldThrow()
+    {
+        await using MesDbContext context = CreateContext();
+        var service = new KnowledgeService(context, [], new TextChunker(), new FakeVectorStore([]));
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SearchSimilarAsync("alarm", topK: 101));
+    }
+
     private static MesDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<MesDbContext>()

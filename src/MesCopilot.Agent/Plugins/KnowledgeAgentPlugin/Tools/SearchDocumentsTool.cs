@@ -40,7 +40,6 @@ public class SearchDocumentsTool
             normalizedQuery,
             topK,
             similarityThreshold);
-        string prompt = BuildPrompt(normalizedQuery, chunks);
         string answer = await _answerGenerator.GenerateAnswerAsync(normalizedQuery, chunks);
         stopwatch.Stop();
         var sources = BuildSources(chunks);
@@ -65,7 +64,6 @@ public class SearchDocumentsTool
                 answer,
                 sources,
                 chunks = chunkData,
-                prompt,
                 totalCount = chunks.Count
             },
             Explanation = $"RAG search retrieved {chunks.Count} knowledge chunks for '{normalizedQuery}' from {sources.Count} sources.",
@@ -81,35 +79,17 @@ public class SearchDocumentsTool
         }
 
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(topK);
+        if (topK > KnowledgeSearchLimits.MaxTopK)
+        {
+            throw new ArgumentOutOfRangeException(nameof(topK), $"TopK must be less than or equal to {KnowledgeSearchLimits.MaxTopK}.");
+        }
+
         if (similarityThreshold < 0d || similarityThreshold > 1d)
         {
             throw new ArgumentOutOfRangeException(nameof(similarityThreshold), "Similarity threshold must be in the range [0, 1].");
         }
 
         return query.Trim();
-    }
-
-    private static string BuildPrompt(
-        string query,
-        IReadOnlyList<DocumentSearchResultDto> chunks)
-    {
-        if (chunks.Count == 0)
-        {
-            return $"Question: {query}{Environment.NewLine}No relevant knowledge-base context was retrieved.";
-        }
-
-        IEnumerable<string> contextLines = chunks.Select((chunk, index) =>
-            $"Source {index + 1}: {chunk.DocumentTitle} ({chunk.FileName}), chunk {chunk.Sequence}{Environment.NewLine}{chunk.Content}");
-
-        return string.Join(
-            Environment.NewLine + Environment.NewLine,
-            [
-                "Answer the manufacturing knowledge question using only the retrieved context.",
-                $"Question: {query}",
-                "Context:",
-                string.Join(Environment.NewLine + Environment.NewLine, contextLines),
-                "Include source titles when useful."
-            ]);
     }
 
     private static List<object> BuildSources(IReadOnlyList<DocumentSearchResultDto> chunks)

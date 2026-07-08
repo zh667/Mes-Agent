@@ -187,8 +187,7 @@ public class KnowledgeService : IKnowledgeService
         {
             if (!documentsById.TryGetValue(chunk.DocumentId, out Document? document))
             {
-                throw new InvalidOperationException(
-                    $"Search result chunk {chunk.Id} references missing document {chunk.DocumentId}.");
+                continue;
             }
 
             results.Add(new DocumentSearchResultDto(
@@ -246,6 +245,11 @@ public class KnowledgeService : IKnowledgeService
         }
 
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(topK);
+        if (topK > KnowledgeSearchLimits.MaxTopK)
+        {
+            throw new ArgumentOutOfRangeException(nameof(topK), $"TopK must be less than or equal to {KnowledgeSearchLimits.MaxTopK}.");
+        }
+
         if (similarityThreshold < 0d || similarityThreshold > 1d)
         {
             throw new ArgumentOutOfRangeException(nameof(similarityThreshold), "Similarity threshold must be in the range [0, 1].");

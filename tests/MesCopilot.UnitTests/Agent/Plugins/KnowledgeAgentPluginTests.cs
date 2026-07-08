@@ -28,6 +28,7 @@ public class KnowledgeAgentPluginTests
         Assert.Equal("A102 alarm", data.RootElement.GetProperty("query").GetString());
         Assert.Equal("Stop the line and inspect the A102 sensor.", data.RootElement.GetProperty("answer").GetString());
         Assert.Equal(1, data.RootElement.GetProperty("totalCount").GetInt32());
+        Assert.False(data.RootElement.TryGetProperty("prompt", out _));
         JsonElement source = data.RootElement.GetProperty("sources")[0];
         Assert.Equal("SOP A102 Alarm Handling", source.GetProperty("title").GetString());
         Assert.Equal("sop-a102.pdf", source.GetProperty("fileName").GetString());
@@ -55,6 +56,14 @@ public class KnowledgeAgentPluginTests
         var tool = new SearchDocumentsTool(new FakeKnowledgeService());
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => tool.ExecuteAsync("alarm", topK: 0));
+    }
+
+    [Fact]
+    public async Task SearchDocumentsTool_TopKAboveLimit_ShouldThrow()
+    {
+        var tool = new SearchDocumentsTool(new FakeKnowledgeService());
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => tool.ExecuteAsync("alarm", topK: 101));
     }
 
     [Fact]
