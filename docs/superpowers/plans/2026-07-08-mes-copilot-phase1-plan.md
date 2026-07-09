@@ -4177,7 +4177,7 @@ Modify `src/MesCopilot.Api/appsettings.Development.json`:
 ```json
 {
   "OpenAI": {
-    "ApiKey": "sk-your-api-key-here"
+    "ApiKey": "<OPENAI_API_KEY>"
   }
 }
 ```
