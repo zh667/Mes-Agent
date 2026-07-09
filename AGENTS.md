@@ -89,12 +89,13 @@ pnpm build
 | Task type                                                      | Read these files                                                                  |
 | -------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | Any implementation task                                        | `docs/ai-rules/engineering.md`, `docs/ai-rules/project-boundaries.md`             |
-| C# backend, Web API, SignalR, Agent tools                      | `docs/ai-rules/backend.md`, `docs/ai-rules/errors.md`, `docs/ai-rules/logging.md` |
+| C# backend, Web API, SignalR, Agent tools                      | `docs/ai-rules/csharp-dotnet.md`, `docs/ai-rules/backend.md`, `docs/ai-rules/errors.md` |
 | API DTOs, generated clients, frontend/backend contract changes | `docs/ai-rules/api-contracts.md`                                                  |
-| Database, EF Core, migrations, queries                         | `docs/ai-rules/database.md`                                                       |
+| Database, EF Core, migrations, queries                         | `docs/ai-rules/database.md`, `docs/ai-rules/csharp-dotnet.md`                     |
 | React, TypeScript, generated API client usage                  | `docs/ai-rules/typescript.md`, `docs/ai-rules/frontend.md`                        |
 | Blazor or shop-floor/admin screens                             | `docs/ai-rules/frontend.md`, `docs/ai-rules/admin-ui.md`                          |
 | Tests, fixtures, acceptance checks                             | `docs/ai-rules/testing.md`                                                        |
+| Agent plugins, tools, BotSharp integration                     | `docs/ai-rules/csharp-dotnet.md`, `docs/ai-rules/agent-development.md`            |
 | AI rule maintenance                                            | `docs/ai-rules/README.md`, then the specific file being edited                    |
 
 ## Delivery Checklist

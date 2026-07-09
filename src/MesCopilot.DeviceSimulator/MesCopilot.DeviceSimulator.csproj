@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-MesCopilot.DeviceSimulator-2e21ba57-a7d5-45ec-a4ba-bac4ef51191b</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MesCopilot.Application\MesCopilot.Application.csproj" />
+    <ProjectReference Include="..\MesCopilot.Domain\MesCopilot.Domain.csproj" />
+    <ProjectReference Include="..\MesCopilot.Infrastructure\MesCopilot.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

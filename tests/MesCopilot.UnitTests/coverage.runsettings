@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Include>
+            [MesCopilot.Agent]*,
+            [MesCopilot.Application]*,
+            [MesCopilot.DeviceSimulator]MesCopilot.DeviceSimulator.Services.*,
+            [MesCopilot.Domain]*,
+            [MesCopilot.Infrastructure]MesCopilot.Infrastructure.DocumentParsers.*
+          </Include>
+          <Exclude>
+            [*.Tests]*,
+            [MesCopilot.Api]*,
+            [MesCopilot.DeviceSimulator]MesCopilot.DeviceSimulator.Workers.*,
+            [MesCopilot.Infrastructure]MesCopilot.Infrastructure.Migrations.*,
+            [MesCopilot.Infrastructure]MesCopilot.Infrastructure.Data.Configurations.*,
+            [MesCopilot.Infrastructure]MesCopilot.Infrastructure.VectorStore.*
+          </Exclude>
+          <ExcludeByFile>**/Program.cs,**/DependencyInjection.cs,**/Migrations/*.cs,**/obj/**/*.cs</ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

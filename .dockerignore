@@ -1,0 +1,17 @@
+.git
+.agents
+references
+**/bin
+**/obj
+**/TestResults
+**/.vs
+**/.next
+**/node_modules
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+*.log
+*.tmp
+*.temp
+
