@@ -1,6 +1,6 @@
 # Phase 3 Review Follow-ups
 
-Updated: 2026-07-10
+Updated: 2026-07-11
 
 This file records review findings that are valid but intentionally deferred beyond the current Phase 3A/3B merge scope. Items include the existing mitigation and the condition that should trigger implementation.
 
@@ -9,6 +9,7 @@ This file records review findings that are valid but intentionally deferred beyo
 | ID | Resolution | Verification |
 | --- | --- | --- |
 | P3-F11 | All checked-in operations UI copy was moved into matching `en-US` and `zh-CN` feature catalogs. A TypeScript-AST checker now rejects hardcoded JSX text and accessible labels; locale parity is enforced by tests and CI. | `pnpm check:i18n`, frontend unit tests, lint, typecheck, build, and localization Playwright coverage. |
+| P3-F15 | Modbus transport I/O now uses a five-second deadline independent of the polling cadence. The simulator test has separate startup, connection, and first-reading budgets, and a delayed-loopback regression proves a 300 ms response succeeds with 100 ms polling. | Targeted delayed-response regression, repeated Modbus integration tests, and the complete integration suite. |
 
 ## Deferred Hardening
 
@@ -27,7 +28,6 @@ This file records review findings that are valid but intentionally deferred beyo
 | P3-F12 | Persisted message verification has GET/recheck APIs, but the current chat scaffold does not restore a selected historical conversation after page reload. | Verification JSON is versioned on the assistant message; corrupt data fails closed as Unverified. | When conversation history selection is added to the Agent UI, fetch each assistant message verification and prove reload parity with an E2E test. |
 | P3-F13 | BOM and scheduling BenchmarkDotNet baselines isolate deterministic 10,000-node/500-operation hot paths rather than invoking EF Core and PostgreSQL end to end. | PostgreSQL correctness and concurrency are covered separately by Testcontainers integration tests. | Add database-backed load scenarios and enforce p95 thresholds in CI when production-like data volume and runner hardware are available. |
 | P3-F14 | The cross-module Playwright workflow exercises the real UI and generated client contracts with mocked HTTP/SSE transport rather than a live API and PostgreSQL. | Controller, tenant isolation, migration, and scheduling concurrency behavior are covered by separate integration tests. | Run the same BOM -> scheduling -> verified Agent workflow against a disposable full Compose/Testcontainers environment in CI. |
-| P3-F15 | The full integration suite produced one non-reproducible Modbus loopback read timeout under load; the isolated rerun and the complete rerun both passed. | Connector operations are bounded and the test waits for the simulator listener before connecting. | If CI reproduces the timeout, decouple Modbus transport read timeout from the 100 ms polling interval and add a loaded-loopback regression test before changing production defaults. |
 
 ## Findings Not Applied
 

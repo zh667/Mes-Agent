@@ -7,6 +7,7 @@ namespace MesCopilot.Infrastructure.Devices.Modbus;
 
 public sealed class ModbusTcpDeviceConnector : IDeviceConnector
 {
+    private const int TransportTimeoutMilliseconds = 5_000;
     private readonly DeviceConnectionSettings _settings;
     private readonly int _equipmentId;
     private TcpClient? _tcpClient;
@@ -29,11 +30,11 @@ public sealed class ModbusTcpDeviceConnector : IDeviceConnector
 
         _tcpClient = new TcpClient();
         await _tcpClient.ConnectAsync(_settings.Host, _settings.Port, cancellationToken);
-        _tcpClient.ReceiveTimeout = Math.Max(100, _settings.PollIntervalMilliseconds);
-        _tcpClient.SendTimeout = Math.Max(100, _settings.PollIntervalMilliseconds);
+        _tcpClient.ReceiveTimeout = TransportTimeoutMilliseconds;
+        _tcpClient.SendTimeout = TransportTimeoutMilliseconds;
         _master = new ModbusFactory().CreateMaster(_tcpClient);
         _master.Transport.Retries = 0;
-        _master.Transport.ReadTimeout = Math.Max(100, _settings.PollIntervalMilliseconds);
+        _master.Transport.ReadTimeout = TransportTimeoutMilliseconds;
     }
 
     public async IAsyncEnumerable<DeviceReading> SubscribeAsync(
