@@ -14,12 +14,15 @@ import {
 } from "lucide-react";
 import {
   FormEvent,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 
+import {
+  useAgentStream,
+  type AgentStreamEvent,
+} from "@/lib/hooks/use-agent-stream";
 import { cn } from "@/lib/utils";
 
 type AgentMode = "production" | "quality" | "oee" | "knowledge";
@@ -88,6 +91,13 @@ const agentModes: [AgentModeConfig, ...AgentModeConfig[]] = [
 
 const defaultAgentMode = agentModes[0];
 
+const agentModeValueById: Record<AgentMode, number> = {
+  production: 0,
+  quality: 1,
+  oee: 2,
+  knowledge: 3,
+};
+
 const initialMessages: ChatMessage[] = [
   {
     id: "agent-seed",
@@ -131,31 +141,6 @@ const initialStructuredResult: StructuredResult = {
   ],
 };
 
-const simulatedStructuredResult: StructuredResult = {
-  summary: "Agent response result set",
-  debug: {
-    tool: "AnalyzeDelayedOrders",
-    dataSource: "MES.WorkOrders",
-    latency: "189 ms",
-  },
-  rows: [
-    {
-      workOrder: "WO-20260709-027",
-      product: "Drive Motor",
-      status: "Delayed",
-      progress: "58%",
-      risk: "Missing operator confirmation",
-    },
-    {
-      workOrder: "WO-20260709-031",
-      product: "Control Panel",
-      status: "Delayed",
-      progress: "61%",
-      risk: "Line 2 alarm recovery",
-    },
-  ],
-};
-
 const samplePrompts = [
   "Which work orders are delayed today?",
   "Trace batch B20260709-A102",
@@ -166,13 +151,12 @@ export function ChatInterface() {
   const [activeMode, setActiveMode] = useState<AgentMode>("production");
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [prompt, setPrompt] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [thinkingMessage, setThinkingMessage] = useState("");
   const [showDebug, setShowDebug] = useState(false);
   const [structuredResult, setStructuredResult] = useState<StructuredResult>(
     initialStructuredResult,
   );
   const messageSequenceRef = useRef(1);
-  const responseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeAgent = useMemo(
     () =>
@@ -180,13 +164,30 @@ export function ChatInterface() {
     [activeMode],
   );
 
-  useEffect(() => {
-    return () => {
-      if (responseTimerRef.current) {
-        clearTimeout(responseTimerRef.current);
+  const { streamChat, stopStreaming, isStreaming } = useAgentStream({
+    onEvent: (event: AgentStreamEvent) => {
+      if (event.type === "thinking") {
+        setThinkingMessage(event.content || "Agent is checking MES signals");
+        return;
       }
-    };
-  }, []);
+
+      if (event.type === "tool_result") {
+        setStructuredResult(toStructuredResult(event.data));
+        return;
+      }
+
+      if (event.type === "token" && event.content) {
+        appendAgentToken(event.content);
+      }
+    },
+    onComplete: () => {
+      setThinkingMessage("");
+    },
+    onError: () => {
+      setThinkingMessage("");
+      appendAgentToken("Sorry, the agent stream failed. Please retry.");
+    },
+  });
 
   function sendPrompt(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -210,29 +211,40 @@ export function ChatInterface() {
       },
     ]);
     setPrompt("");
-    setIsTyping(true);
+    setThinkingMessage("Agent is checking MES signals");
 
-    if (responseTimerRef.current) {
-      clearTimeout(responseTimerRef.current);
-    }
+    void streamChat({
+      mode: agentModeValueById[activeMode],
+      message: normalizedPrompt,
+      debugMode: showDebug,
+    });
+  }
 
-    responseTimerRef.current = setTimeout(() => {
+  function appendAgentToken(content: string) {
+    setMessages((currentMessages) => {
+      const lastMessage = currentMessages.at(-1);
+      if (lastMessage?.role === "agent" && lastMessage.timestamp === "Now") {
+        return [
+          ...currentMessages.slice(0, -1),
+          {
+            ...lastMessage,
+            content: `${lastMessage.content}${content}`,
+          },
+        ];
+      }
+
       messageSequenceRef.current += 1;
-      setMessages((currentMessages) => [
+      return [
         ...currentMessages,
         {
           id: `agent-${messageSequenceRef.current}`,
           role: "agent",
           mode: activeMode,
-          content:
-            "I found 2 delayed work orders and updated the structured result with the current risk drivers.",
+          content,
           timestamp: "Now",
         },
-      ]);
-      setStructuredResult(simulatedStructuredResult);
-      setIsTyping(false);
-      responseTimerRef.current = null;
-    }, 600);
+      ];
+    });
   }
 
   return (
@@ -346,7 +358,7 @@ export function ChatInterface() {
                 </article>
               ))}
 
-              {isTyping ? (
+              {thinkingMessage ? (
                 <div
                   role="status"
                   className="flex w-fit items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground"
@@ -391,11 +403,21 @@ export function ChatInterface() {
                 <button
                   type="submit"
                   className="flex min-h-16 w-16 items-center justify-center rounded-md bg-primary text-primary-foreground transition-[background-color,scale] duration-150 ease-out hover:bg-primary/90 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!prompt.trim()}
+                  disabled={!prompt.trim() || isStreaming}
                   aria-label="Send message"
                 >
                   <Send className="h-5 w-5" aria-hidden="true" />
                 </button>
+                {isStreaming ? (
+                  <button
+                    type="button"
+                    onClick={stopStreaming}
+                    className="flex min-h-16 w-12 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-[background-color,scale] duration-150 ease-out hover:bg-muted active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    aria-label="Stop streaming"
+                  >
+                    <span className="h-3 w-3 rounded-sm bg-current" />
+                  </button>
+                ) : null}
               </div>
             </form>
           </section>
@@ -516,4 +538,72 @@ function DebugRow({ label, value }: { label: string; value: string }) {
       <dd className="font-medium tabular-nums text-foreground">{value}</dd>
     </div>
   );
+}
+
+function toStructuredResult(data: unknown): StructuredResult {
+  const toolResult = isRecord(data) ? data : {};
+  const nestedData = isRecord(toolResult.data) ? toolResult.data : {};
+  const workOrders = Array.isArray(nestedData.workOrders)
+    ? nestedData.workOrders
+    : [];
+  const rows = workOrders
+    .filter(isRecord)
+    .slice(0, 5)
+    .map((workOrder) => ({
+      workOrder: toDisplayString(workOrder.code ?? workOrder.Code, "Unknown"),
+      product: toDisplayString(
+        workOrder.productName ?? workOrder.ProductName,
+        "Unknown product",
+      ),
+      status: toDisplayString(workOrder.status ?? workOrder.Status, "Open"),
+      progress: formatProgress(workOrder.progress ?? workOrder.Progress),
+      risk: toDisplayString(
+        workOrder.delayReason ?? workOrder.risk ?? workOrder.Risk,
+        "None",
+      ),
+    }));
+
+  return {
+    summary:
+      rows.length > 0
+        ? "Live result returned by the selected agent tool"
+        : "Agent returned structured data without work order rows",
+    debug: {
+      tool: toDisplayString(toolResult.tool, "AgentTool"),
+      dataSource: "MES Agent API",
+      latency: "stream",
+    },
+    rows:
+      rows.length > 0
+        ? rows
+        : [
+            {
+              workOrder: "No rows",
+              product: "Tool returned no work order table",
+              status: "Empty",
+              progress: "0%",
+              risk: "None",
+            },
+          ],
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function toDisplayString(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function formatProgress(value: unknown) {
+  if (typeof value === "number") {
+    return `${Math.round((value <= 1 ? value * 100 : value))}%`;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return value;
+  }
+
+  return "0%";
 }

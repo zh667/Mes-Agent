@@ -22,6 +22,28 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
     }
 }
 
+public class DocumentVersionConfiguration : IEntityTypeConfiguration<DocumentVersion>
+{
+    public void Configure(EntityTypeBuilder<DocumentVersion> builder)
+    {
+        builder.ToTable("DocumentVersions");
+        builder.HasKey(version => version.Id);
+
+        builder.Property(version => version.FileName).IsRequired().HasMaxLength(255);
+        builder.Property(version => version.FilePath).IsRequired().HasMaxLength(500);
+        builder.Property(version => version.UploadedById).IsRequired().HasMaxLength(450);
+        builder.Property(version => version.ChangeNote).HasMaxLength(500);
+
+        builder.HasIndex(version => new { version.DocumentId, version.VersionNumber }).IsUnique();
+        builder.HasIndex(version => new { version.DocumentId, version.IsActive });
+
+        builder.HasOne(version => version.Document)
+            .WithMany(document => document.Versions)
+            .HasForeignKey(version => version.DocumentId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 public class DocumentChunkConfiguration : IEntityTypeConfiguration<DocumentChunk>
 {
     public void Configure(EntityTypeBuilder<DocumentChunk> builder)

@@ -154,6 +154,143 @@ public class KnowledgeService : IKnowledgeService
         return true;
     }
 
+    public async Task<DocumentVersionDto> UploadNewVersionAsync(
+        int documentId,
+        Stream fileStream,
+        string fileName,
+        string changeNote,
+        string uploadedById)
+    {
+        ArgumentNullException.ThrowIfNull(fileStream);
+        string normalizedFileName = ValidateVersionFileName(fileName);
+        if (string.IsNullOrWhiteSpace(uploadedById))
+        {
+            throw new ArgumentException("Uploader id is required.", nameof(uploadedById));
+        }
+
+        Document document = await _context.Documents.FirstOrDefaultAsync(item => item.Id == documentId)
+            ?? throw new ArgumentException($"Document {documentId} not found.", nameof(documentId));
+        List<DocumentVersion> versions = await _context.DocumentVersions
+            .Where(version => version.DocumentId == documentId)
+            .OrderBy(version => version.VersionNumber)
+            .ToListAsync();
+
+        Stream versionContent = fileStream;
+        MemoryStream? bufferedContent = null;
+        long originalPosition = 0;
+        int nextVersionNumber = versions.Count == 0
+            ? 1
+            : versions.Max(version => version.VersionNumber) + 1;
+        long fileSize;
+        if (fileStream.CanSeek)
+        {
+            originalPosition = fileStream.Position;
+            fileSize = fileStream.Length;
+            fileStream.Position = 0;
+        }
+        else
+        {
+            bufferedContent = new MemoryStream();
+            await fileStream.CopyToAsync(bufferedContent);
+            fileSize = bufferedContent.Length;
+            bufferedContent.Position = 0;
+            versionContent = bufferedContent;
+        }
+
+        DateTime now = DateTime.UtcNow;
+        string filePath = CreateVersionFilePath(documentId, nextVersionNumber, normalizedFileName);
+
+        try
+        {
+            foreach (DocumentVersion version in versions)
+            {
+                version.IsActive = false;
+            }
+
+            DocumentVersion newVersion = new()
+            {
+                DocumentId = documentId,
+                VersionNumber = nextVersionNumber,
+                FileName = normalizedFileName,
+                FilePath = filePath,
+                FileSize = fileSize,
+                UploadedById = uploadedById,
+                UploadedAt = now,
+                ChangeNote = changeNote.Trim(),
+                IsActive = true
+            };
+
+            document.FileName = normalizedFileName;
+            document.FilePath = filePath;
+            document.FileSize = fileSize;
+            document.UploadedAt = now;
+            document.VectorizationStatus = "completed";
+
+            _context.DocumentVersions.Add(newVersion);
+            await PersistVersionFileAsync(filePath, versionContent);
+            try
+            {
+                await ReplaceDocumentChunksAsync(document.Id, normalizedFileName, document.MimeType, versionContent, now);
+            }
+            catch (Exception)
+            {
+                document.VectorizationStatus = "failed";
+            }
+
+            await _context.SaveChangesAsync();
+
+            return ToVersionDto(newVersion);
+        }
+        finally
+        {
+            if (fileStream.CanSeek)
+            {
+                fileStream.Position = originalPosition;
+            }
+
+            bufferedContent?.Dispose();
+        }
+    }
+
+    public async Task<IReadOnlyList<DocumentVersionDto>> GetVersionHistoryAsync(int documentId)
+    {
+        List<DocumentVersion> versions = await _context.DocumentVersions
+            .AsNoTracking()
+            .Where(version => version.DocumentId == documentId)
+            .OrderByDescending(version => version.VersionNumber)
+            .ToListAsync();
+
+        return versions.Select(ToVersionDto).ToList();
+    }
+
+    public async Task RevertToVersionAsync(int documentId, int versionId)
+    {
+        Document document = await _context.Documents.FirstOrDefaultAsync(item => item.Id == documentId)
+            ?? throw new ArgumentException($"Document {documentId} not found.", nameof(documentId));
+        List<DocumentVersion> versions = await _context.DocumentVersions
+            .Where(version => version.DocumentId == documentId)
+            .ToListAsync();
+        DocumentVersion targetVersion = versions.FirstOrDefault(version => version.Id == versionId)
+            ?? throw new ArgumentException($"Version {versionId} not found for document {documentId}.", nameof(versionId));
+
+        foreach (DocumentVersion version in versions)
+        {
+            version.IsActive = version.Id == versionId;
+        }
+
+        document.FileName = targetVersion.FileName;
+        document.FilePath = targetVersion.FilePath;
+        document.FileSize = targetVersion.FileSize;
+        document.UploadedAt = targetVersion.UploadedAt;
+        document.VectorizationStatus = "pending";
+
+        List<DocumentChunk> chunks = await _context.DocumentChunks
+            .Where(chunk => chunk.DocumentId == documentId)
+            .ToListAsync();
+        _context.DocumentChunks.RemoveRange(chunks);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<IReadOnlyList<DocumentSearchResultDto>> SearchSimilarAsync(
         string query,
         int topK = 5,
@@ -256,6 +393,104 @@ public class KnowledgeService : IKnowledgeService
         }
 
         return query.Trim();
+    }
+
+    private static string ValidateVersionFileName(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentException("File name is required.", nameof(fileName));
+        }
+
+        return Path.GetFileName(fileName.Trim());
+    }
+
+    private async Task ReplaceDocumentChunksAsync(
+        int documentId,
+        string fileName,
+        string mimeType,
+        Stream content,
+        DateTime createdAt)
+    {
+        if (_textChunker is null || _vectorStore is null || _documentParsers.Count == 0)
+        {
+            return;
+        }
+
+        if (content.CanSeek)
+        {
+            content.Position = 0;
+        }
+
+        IDocumentParser parser = _documentParsers.FirstOrDefault(item => item.CanParse(fileName, mimeType))
+            ?? throw new NotSupportedException($"No document parser is registered for {fileName}.");
+        ParsedDocument parsedDocument = await parser.ParseAsync(content);
+        List<string> chunkTexts = _textChunker.ChunkText(parsedDocument.Text);
+        List<float[]> embeddings = chunkTexts.Count == 0
+            ? []
+            : await GenerateEmbeddingsInBatchesAsync(_vectorStore, chunkTexts);
+        List<DocumentChunk> existingChunks = await _context.DocumentChunks
+            .Where(chunk => chunk.DocumentId == documentId)
+            .ToListAsync();
+        _context.DocumentChunks.RemoveRange(existingChunks);
+
+        if (chunkTexts.Count == 0)
+        {
+            return;
+        }
+
+        List<DocumentChunk> chunks = chunkTexts
+            .Select((chunkText, index) => new DocumentChunk
+            {
+                DocumentId = documentId,
+                Sequence = index + 1,
+                Content = chunkText,
+                Vector = ToVectorLiteral(embeddings[index]),
+                TokenCount = EstimateTokenCount(chunkText),
+                CreatedAt = createdAt
+            })
+            .ToList();
+        _context.DocumentChunks.AddRange(chunks);
+    }
+
+    private static async Task PersistVersionFileAsync(string filePath, Stream content)
+    {
+        string? directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        if (content.CanSeek)
+        {
+            content.Position = 0;
+        }
+
+        await using FileStream output = File.Create(filePath);
+        await content.CopyToAsync(output);
+
+        if (content.CanSeek)
+        {
+            content.Position = 0;
+        }
+    }
+
+    private static string CreateVersionFilePath(int documentId, int versionNumber, string fileName)
+    {
+        return $"uploads/knowledge/doc-{documentId}/v{versionNumber}/{fileName}";
+    }
+
+    private static DocumentVersionDto ToVersionDto(DocumentVersion version)
+    {
+        return new DocumentVersionDto(
+            version.Id,
+            version.VersionNumber,
+            version.FileName,
+            version.ChangeNote,
+            version.UploadedById,
+            version.UploadedAt,
+            version.FileSize,
+            version.IsActive);
     }
 
     private static int EstimateTokenCount(string text)

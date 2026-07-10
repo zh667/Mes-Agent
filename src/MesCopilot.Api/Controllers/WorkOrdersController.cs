@@ -1,11 +1,13 @@
 using MesCopilot.Application.Dtos;
 using MesCopilot.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MesCopilot.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class WorkOrdersController : ControllerBase
 {
     private readonly IWorkOrderService _workOrderService;

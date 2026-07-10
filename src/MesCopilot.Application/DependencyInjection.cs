@@ -11,6 +11,10 @@ public static class DependencyInjection
         services.AddScoped<IEquipmentService, EquipmentService>();
         services.AddScoped<IQualityService, QualityService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
+        services.AddScoped<IConversationService, ConversationService>();
+        services.AddScoped<IReportExportService, ReportExportService>();
+        services.AddScoped<IMaintenancePredictionService, MaintenancePredictionService>();
+        services.AddScoped<IQualityRootCauseService, QualityRootCauseService>();
         return services;
     }
 }

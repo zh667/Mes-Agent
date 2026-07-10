@@ -55,4 +55,6 @@ public class Document
     public string? Description { get; set; }
 
     public ICollection<DocumentChunk> Chunks { get; set; } = new List<DocumentChunk>();
+
+    public ICollection<DocumentVersion> Versions { get; set; } = new List<DocumentVersion>();
 }

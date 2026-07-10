@@ -2,10 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using MesCopilot.Application.Dtos;
 using MesCopilot.Infrastructure.Data;
+using MesCopilot.IntegrationTests.Auth;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -71,12 +74,31 @@ public class WorkOrdersApiFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureLogging(logging => logging.ClearProviders());
+        builder.ConfigureAppConfiguration((_, configuration) =>
+        {
+            configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Secret"] = "ThisIsATestSecretKeyThatIsAtLeast32BytesLong!!",
+                ["Jwt:Issuer"] = "MesCopilot",
+                ["Jwt:Audience"] = "MesCopilotClient",
+                ["Jwt:AccessTokenExpirationMinutes"] = "15",
+                ["Jwt:RefreshTokenExpirationDays"] = "7"
+            });
+        });
 
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<MesDbContext>>();
             services.AddDbContext<MesDbContext>(options =>
                 options.UseInMemoryDatabase("mes-copilot-api", _databaseRoot));
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;
+                options.DefaultChallengeScheme = TestAuthHandler.AuthenticationScheme;
+            })
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                    TestAuthHandler.AuthenticationScheme,
+                    _ => { });
 
             using var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
