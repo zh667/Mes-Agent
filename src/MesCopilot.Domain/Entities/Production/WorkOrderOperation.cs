@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Production;
 /// <summary>
 /// 工单工序。
 /// </summary>
-public class WorkOrderOperation
+public class WorkOrderOperation : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>
@@ -16,6 +18,8 @@ public class WorkOrderOperation
     /// 工序 ID。
     /// </summary>
     public int ProcessStepId { get; set; }
+
+    public int? EquipmentId { get; set; }
 
     /// <summary>
     /// 序号。
@@ -47,7 +51,11 @@ public class WorkOrderOperation
     /// </summary>
     public int CompletedQuantity { get; set; }
 
+    public uint Version { get; private set; }
+
     public WorkOrder WorkOrder { get; set; } = null!;
 
     public ProcessStep ProcessStep { get; set; } = null!;
+
+    public MesCopilot.Domain.Entities.Equipment.Equipment? Equipment { get; set; }
 }

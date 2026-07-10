@@ -2,6 +2,7 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: mes-copilot-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-mes_copilot}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -16,18 +17,70 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: mes-copilot-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-change-me-for-local-only}
+    command: ["/bin/sh", "-c", "exec redis-server --appendonly yes --requirepass \"$${REDIS_PASSWORD}\""]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: mes-copilot-mqtt
+    restart: unless-stopped
+    environment:
+      MQTT_USERNAME: ${MQTT_USERNAME:-collector}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-change-me-for-local-only}
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        mosquitto_passwd -b -c /tmp/passwords "$${MQTT_USERNAME}" "$${MQTT_PASSWORD}" &&
+        printf 'user %s\ntopic readwrite mes/equipment/+/state\ntopic write health\n' "$${MQTT_USERNAME}" > /tmp/acl &&
+        chown mosquitto:mosquitto /tmp/passwords /tmp/acl &&
+        exec mosquitto -c /mosquitto/config/mosquitto.conf
+    volumes:
+      - ./docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_pub -h localhost -t health -m ok -u \"$${MQTT_USERNAME}\" -P \"$${MQTT_PASSWORD}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build:
       context: .
       dockerfile: src/MesCopilot.Api/Dockerfile
     container_name: mes-copilot-api
+    restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mqtt:
         condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__MesDatabase: Host=postgres;Port=5432;Database=${POSTGRES_DB:-mes_copilot};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      ConnectionStrings__Redis: redis:6379,password=${REDIS_PASSWORD:-change-me-for-local-only},abortConnect=false
+      Jwt__Secret: ${JWT_SECRET:-change-me-use-at-least-32-random-bytes}
+      Audit__IpHashKey: ${AUDIT_IP_HASH_KEY:-change-me-use-a-random-hmac-key}
+      BootstrapAdminEmail: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BootstrapAdminPassword: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      BootstrapAdminDisplayName: ${BOOTSTRAP_ADMIN_DISPLAY_NAME:-Platform Administrator}
+      DataProtection__KeyPath: /var/mescopilot/keys
+    volumes:
+      - data_protection_keys:/var/mescopilot/keys
     ports:
       - "${API_PORT:-5000}:8080"
     healthcheck:
@@ -42,15 +95,24 @@ services:
       context: .
       dockerfile: src/MesCopilot.DeviceSimulator/Dockerfile
     container_name: mes-copilot-simulator
+    restart: unless-stopped
+    profiles: ["simulation"]
     depends_on:
       postgres:
         condition: service_healthy
       api:
         condition: service_healthy
+      mqtt:
+        condition: service_healthy
     environment:
       DOTNET_ENVIRONMENT: Development
       ConnectionStrings__MesDatabase: Host=postgres;Port=5432;Database=${POSTGRES_DB:-mes_copilot};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
-      Realtime__HubUrl: http://api:8080/hubs/equipment
+      Mqtt__Host: mqtt
+      Mqtt__Port: 1883
+      Mqtt__Username: ${MQTT_USERNAME:-collector}
+      Mqtt__Password: ${MQTT_PASSWORD:-change-me-for-local-only}
+      Modbus__Port: 5020
+      OpcUa__Port: 4840
 
   web:
     build:
@@ -59,12 +121,23 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
     container_name: mes-copilot-web
+    restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5000/api}
+      API_INTERNAL_URL: ${API_INTERNAL_URL:-http://api:8080/api}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-use-at-least-32-random-bytes}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
     ports:
       - "${WEB_PORT:-3000}:3000"
 
+networks:
+  default:
+    name: mes-copilot-network
+
 volumes:
   postgres_data:
+  redis_data:
+  data_protection_keys:

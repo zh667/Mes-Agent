@@ -5,8 +5,10 @@ namespace MesCopilot.Domain.Entities.Production;
 /// <summary>
 /// 工艺路线。
 /// </summary>
-public class ProcessRoute
+public class ProcessRoute : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

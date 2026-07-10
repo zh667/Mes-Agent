@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Quality;
 /// <summary>
 /// 不良记录。
 /// </summary>
-public class DefectRecord
+public class DefectRecord : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

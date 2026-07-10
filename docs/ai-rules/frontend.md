@@ -66,12 +66,35 @@ When using Blazor:
 - Keyboard navigation must work for core forms and tables.
 - Do not rely on color alone for quality or equipment states.
 
+## Localization
+
+- English (`en-US`) and Simplified Chinese (`zh-CN`) are supported product
+  locales. Every user-visible string must be added to both catalogs in the same
+  change.
+- Use `useTranslations` in client components and the corresponding `next-intl`
+  server API in server components. Do not hardcode headings, buttons, labels,
+  placeholders, empty states, errors, status text, tooltips, `alt`, or
+  `aria-label` values.
+- Keep message keys grouped by feature and describe intent, not the English
+  wording. Prefer `scheduling.adjustError` over `messages.error2`.
+- Use ICU-style placeholders for dynamic values. Do not assemble translated
+  sentences from fragments or interpolate raw HTML.
+- Do not translate business data, identifiers, protocol names, product names,
+  operator-entered text, or backend/Agent output unless the API explicitly
+  provides localized values.
+- When a technical identifier must remain as literal visible JSX, add a nearby
+  `i18n-ignore: <reason>` comment. Baseline suppressions and reason-free ignores
+  are not allowed.
+- Changing locale must preserve the current route and user workflow. Format
+  dates and numbers with the active locale.
+
 ## Validation
 
 Run frontend checks when available:
 
 ```powershell
 pnpm lint
+pnpm check:i18n
 pnpm typecheck
 pnpm test
 pnpm build

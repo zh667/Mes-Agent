@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Products;
 /// <summary>
 /// 物料主数据。
 /// </summary>
-public class Material
+public class Material : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>
@@ -43,4 +45,6 @@ public class Material
     public DateTime? UpdatedAt { get; set; }
 
     public ICollection<BomItem> BomItems { get; set; } = new List<BomItem>();
+
+    public InventoryBalance? InventoryBalance { get; set; }
 }

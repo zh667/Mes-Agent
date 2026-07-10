@@ -1,12 +1,18 @@
 using System.Net;
 using System.Net.Http.Json;
 using MesCopilot.Application.Dtos;
+using MesCopilot.Api.Middleware;
+using MesCopilot.Domain.Entities.Identity;
+using MesCopilot.Domain.Enums;
 using MesCopilot.Infrastructure.Data;
+using MesCopilot.Infrastructure.Data.Interceptors;
+using MesCopilot.Infrastructure.Tenancy;
 using MesCopilot.IntegrationTests.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,6 +77,13 @@ public class WorkOrdersApiFactory : WebApplicationFactory<Program>
 {
     private readonly InMemoryDatabaseRoot _databaseRoot = new();
 
+    public new HttpClient CreateClient()
+    {
+        HttpClient client = base.CreateClient();
+        client.DefaultRequestHeaders.Add(TenantResolutionMiddleware.HeaderName, SeedData.DefaultTenantId);
+        return client;
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureLogging(logging => logging.ClearProviders());
@@ -89,8 +102,12 @@ public class WorkOrdersApiFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<MesDbContext>>();
-            services.AddDbContext<MesDbContext>(options =>
-                options.UseInMemoryDatabase("mes-copilot-api", _databaseRoot));
+            services.AddDbContext<MesDbContext>((provider, options) =>
+                options.UseInMemoryDatabase("mes-copilot-api", _databaseRoot)
+                    .ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning))
+                    .AddInterceptors(
+                        provider.GetRequiredService<TenantWriteGuardInterceptor>(),
+                        provider.GetRequiredService<DataChangeAuditInterceptor>()));
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;
@@ -102,10 +119,29 @@ public class WorkOrdersApiFactory : WebApplicationFactory<Program>
 
             using var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
+            CurrentTenantContext tenantContext = scope.ServiceProvider.GetRequiredService<CurrentTenantContext>();
+            tenantContext.Initialize(new TenantResolution(SeedData.DefaultTenantId, IsPlatformAdmin: false));
             var context = scope.ServiceProvider.GetRequiredService<MesDbContext>();
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
             SeedData.SeedAsync(context).GetAwaiter().GetResult();
+            context.Users.Add(new AppUser
+            {
+                Id = TestAuthHandler.DefaultUserId,
+                UserName = TestAuthHandler.DefaultEmail,
+                NormalizedUserName = TestAuthHandler.DefaultEmail.ToUpperInvariant(),
+                Email = TestAuthHandler.DefaultEmail,
+                NormalizedEmail = TestAuthHandler.DefaultEmail.ToUpperInvariant(),
+                DisplayName = "Test User"
+            });
+            context.UserTenantMemberships.Add(new UserTenantMembership
+            {
+                UserId = TestAuthHandler.DefaultUserId,
+                TenantId = SeedData.DefaultTenantId,
+                Role = UserRole.Admin,
+                IsActive = true
+            });
+            context.SaveChanges();
         });
     }
 }

@@ -10,7 +10,13 @@ import {
   type AgentStreamEvent,
 } from "@/lib/hooks/use-agent-stream";
 
-let mockSession: { accessToken?: string } | null = { accessToken: "test-token" };
+let mockSession: {
+  accessToken?: string;
+  user?: { tenants?: Array<{ id: string; isActive?: boolean }> };
+} | null = {
+  accessToken: "test-token",
+  user: { tenants: [{ id: "tenant-a", isActive: true }] },
+};
 
 vi.mock("next-auth/react", () => ({
   useSession: () => ({
@@ -40,12 +46,16 @@ function createSseResponse(events: string[]) {
 
 describe("useAgentStream", () => {
   beforeEach(() => {
-    mockSession = { accessToken: "test-token" };
+    mockSession = {
+      accessToken: "test-token",
+      user: { tenants: [{ id: "tenant-a", isActive: true }] },
+    };
+    localStorage.setItem("mes.activeTenantId", "tenant-a");
     process.env.NEXT_PUBLIC_API_URL = "http://localhost:5000/api";
     vi.restoreAllMocks();
   });
 
-  it("streams SSE events and sends the bearer token", async () => {
+  it("streams SSE events and sends the bearer token with the active tenant", async () => {
     const events: AgentStreamEvent[] = [];
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
@@ -53,6 +63,7 @@ describe("useAgentStream", () => {
         createSseResponse([
           "data: {\"type\":\"thinking\",\"content\":\"Selecting MES tool\"}\n\n",
           "data: {\"type\":\"token\",\"content\":\"Today has\"}\n\n",
+          "data: {\"type\":\"verification\",\"data\":{\"status\":\"Verified\",\"summary\":\"Matched\",\"errorCode\":null,\"verifiedAtUtc\":\"2026-07-10T08:00:00Z\",\"checks\":[]}}\n\n",
           "data: {\"type\":\"done\",\"content\":null}\n\n",
         ]),
       );
@@ -77,12 +88,14 @@ describe("useAgentStream", () => {
         method: "POST",
         headers: expect.objectContaining({
           Authorization: "Bearer test-token",
+          "X-Tenant-Id": "tenant-a",
         }),
       }),
     );
     expect(events.map((event) => event.type)).toEqual([
       "thinking",
       "token",
+      "verification",
       "done",
     ]);
     expect(result.current.isStreaming).toBe(false);

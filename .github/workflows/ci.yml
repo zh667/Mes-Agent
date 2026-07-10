@@ -32,8 +32,23 @@ jobs:
       - name: Build
         run: dotnet build MesCopilot.sln --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test MesCopilot.sln --configuration Release --no-build
+      - name: Unit tests with core coverage
+        run: >-
+          dotnet test tests/MesCopilot.UnitTests/MesCopilot.UnitTests.csproj
+          --configuration Release --no-build
+          --collect:"XPlat Code Coverage"
+          --settings tests/MesCopilot.UnitTests/coverage.runsettings
+          --results-directory artifacts/coverage
+
+      - name: Enforce core coverage threshold
+        shell: pwsh
+        run: ./scripts/check-core-coverage.ps1 -CoverageDirectory artifacts/coverage -MinimumPercent 70
+
+      - name: Integration tests
+        run: dotnet test tests/MesCopilot.IntegrationTests/MesCopilot.IntegrationTests.csproj --configuration Release --no-build
+
+      - name: Short performance baselines
+        run: dotnet run --project tests/MesCopilot.Benchmarks/MesCopilot.Benchmarks.csproj --configuration Release --no-build -- --job short --filter "*"
 
       - name: Format check
         run: dotnet format MesCopilot.sln --verify-no-changes --no-restore
@@ -68,6 +83,9 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+      - name: Check localization catalogs and UI copy
+        run: pnpm check:i18n
 
       - name: Typecheck
         run: pnpm typecheck

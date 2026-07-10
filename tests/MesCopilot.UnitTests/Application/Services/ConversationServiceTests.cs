@@ -12,11 +12,7 @@ public sealed class ConversationServiceTests : IDisposable
 
     public ConversationServiceTests()
     {
-        DbContextOptions<MesDbContext> options = new DbContextOptionsBuilder<MesDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        _context = new MesDbContext(options);
+        _context = Infrastructure.Tenancy.TenantTestDbContextFactory.Create();
         _service = new ConversationService(_context);
     }
 

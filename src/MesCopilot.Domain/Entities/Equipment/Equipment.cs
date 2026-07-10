@@ -5,8 +5,10 @@ namespace MesCopilot.Domain.Entities.Equipment;
 /// <summary>
 /// 设备主数据。
 /// </summary>
-public class Equipment
+public class Equipment : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>
@@ -28,6 +30,8 @@ public class Equipment
     /// 产线 ID。
     /// </summary>
     public int? ProductionLineId { get; set; }
+
+    public int? WorkstationId { get; set; }
 
     /// <summary>
     /// 额定产能。
@@ -51,9 +55,13 @@ public class Equipment
 
     public ProductionLine? ProductionLine { get; set; }
 
+    public Workstation? Workstation { get; set; }
+
     public ICollection<EquipmentStatus> StatusHistory { get; set; } = new List<EquipmentStatus>();
 
     public ICollection<EquipmentAlarm> Alarms { get; set; } = new List<EquipmentAlarm>();
 
     public ICollection<DowntimeRecord> DowntimeRecords { get; set; } = new List<DowntimeRecord>();
+
+    public ICollection<DeviceConnection> DeviceConnections { get; set; } = new List<DeviceConnection>();
 }

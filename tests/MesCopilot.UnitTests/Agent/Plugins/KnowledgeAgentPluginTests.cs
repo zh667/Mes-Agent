@@ -80,19 +80,20 @@ public class KnowledgeAgentPluginTests
     }
 
     [Fact]
-    public void InMemoryAgentResponseCache_WhenEntryLimitIsExceeded_ShouldEvictOldestEntry()
+    public async Task InMemoryAgentResponseCache_WhenEntryLimitIsExceeded_ShouldEvictOldestEntry()
     {
         var cache = new InMemoryAgentResponseCache();
         var firstResult = new FunctionCallResult { Data = "first" };
 
-        cache.Set("query-0000", firstResult, TimeSpan.FromMinutes(5));
+        await cache.SetAsync("tenant", "knowledge", "query-0000", firstResult, TimeSpan.FromMinutes(5));
         for (int index = 1; index <= 1000; index++)
         {
-            cache.Set($"query-{index:0000}", new FunctionCallResult { Data = index }, TimeSpan.FromMinutes(5));
+            await cache.SetAsync("tenant", "knowledge", $"query-{index:0000}", new FunctionCallResult { Data = index }, TimeSpan.FromMinutes(5));
         }
 
-        Assert.False(cache.TryGet("query-0000", out _));
-        Assert.True(cache.TryGet("query-1000", out FunctionCallResult latestResult));
+        Assert.Null(await cache.GetAsync("tenant", "knowledge", "query-0000"));
+        FunctionCallResult latestResult = Assert.IsType<FunctionCallResult>(
+            await cache.GetAsync("tenant", "knowledge", "query-1000"));
         Assert.Equal(1000, latestResult.Data);
     }
 

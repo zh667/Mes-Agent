@@ -2,6 +2,7 @@ using System.Globalization;
 using MesCopilot.Application.Dtos;
 using MesCopilot.Domain.Entities.Knowledge;
 using MesCopilot.Infrastructure.Data;
+using MesCopilot.Infrastructure.Caching;
 using MesCopilot.Infrastructure.DocumentParsers;
 using MesCopilot.Infrastructure.VectorStore;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public class KnowledgeService : IKnowledgeService
     private readonly IReadOnlyList<IDocumentParser> _documentParsers;
     private readonly TextChunker? _textChunker;
     private readonly IVectorStore? _vectorStore;
+    private readonly ICacheScopeVersionStore? _cacheScopeVersions;
 
     public KnowledgeService(MesDbContext context)
     {
@@ -27,12 +29,14 @@ public class KnowledgeService : IKnowledgeService
         MesDbContext context,
         IEnumerable<IDocumentParser> documentParsers,
         TextChunker textChunker,
-        IVectorStore vectorStore)
+        IVectorStore vectorStore,
+        ICacheScopeVersionStore? cacheScopeVersions = null)
     {
         _context = context;
         _documentParsers = documentParsers.ToList();
         _textChunker = textChunker;
         _vectorStore = vectorStore;
+        _cacheScopeVersions = cacheScopeVersions;
     }
 
     public async Task<IEnumerable<DocumentDto>> GetAllAsync()
@@ -71,6 +75,7 @@ public class KnowledgeService : IKnowledgeService
 
         _context.Documents.Add(document);
         await _context.SaveChangesAsync();
+        await InvalidateKnowledgeCacheAsync();
 
         return ToDto(document);
     }
@@ -120,6 +125,7 @@ public class KnowledgeService : IKnowledgeService
         _context.DocumentChunks.AddRange(chunks);
         document.VectorizationStatus = "completed";
         await _context.SaveChangesAsync();
+        await InvalidateKnowledgeCacheAsync();
 
         return ToDto(document);
     }
@@ -151,6 +157,7 @@ public class KnowledgeService : IKnowledgeService
 
         _context.Documents.Remove(document);
         await _context.SaveChangesAsync();
+        await InvalidateKnowledgeCacheAsync();
         return true;
     }
 
@@ -238,6 +245,7 @@ public class KnowledgeService : IKnowledgeService
             }
 
             await _context.SaveChangesAsync();
+            await InvalidateKnowledgeCacheAsync();
 
             return ToVersionDto(newVersion);
         }
@@ -289,6 +297,7 @@ public class KnowledgeService : IKnowledgeService
             .ToListAsync();
         _context.DocumentChunks.RemoveRange(chunks);
         await _context.SaveChangesAsync();
+        await InvalidateKnowledgeCacheAsync();
     }
 
     public async Task<IReadOnlyList<DocumentSearchResultDto>> SearchSimilarAsync(
@@ -340,6 +349,13 @@ public class KnowledgeService : IKnowledgeService
         }
 
         return results;
+    }
+
+    private Task InvalidateKnowledgeCacheAsync()
+    {
+        return _cacheScopeVersions is null || string.IsNullOrWhiteSpace(_context.CurrentTenantId)
+            ? Task.CompletedTask
+            : _cacheScopeVersions.InvalidateAsync(_context.CurrentTenantId, "knowledge");
     }
 
     private static DocumentDto ToDto(Document document)

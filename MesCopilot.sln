@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MesCopilot.UnitTests", "tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MesCopilot.IntegrationTests", "tests\MesCopilot.IntegrationTests\MesCopilot.IntegrationTests.csproj", "{2DE89029-1725-40C8-9D63-4D4F3D91A11D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MesCopilot.Benchmarks", "tests\MesCopilot.Benchmarks\MesCopilot.Benchmarks.csproj", "{2586BB7E-0AE8-4368-8AF1-C7487F508411}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,18 @@ Global
 		{2DE89029-1725-40C8-9D63-4D4F3D91A11D}.Release|x64.Build.0 = Release|Any CPU
 		{2DE89029-1725-40C8-9D63-4D4F3D91A11D}.Release|x86.ActiveCfg = Release|Any CPU
 		{2DE89029-1725-40C8-9D63-4D4F3D91A11D}.Release|x86.Build.0 = Release|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Debug|x64.Build.0 = Debug|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Debug|x86.Build.0 = Debug|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Release|x64.ActiveCfg = Release|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Release|x64.Build.0 = Release|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Release|x86.ActiveCfg = Release|Any CPU
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,5 +156,6 @@ Global
 		{846CB26E-6293-4F5C-A01E-71B8D7C12BF9} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{879E5775-0AD3-47D3-B88E-61D359F61577} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{2DE89029-1725-40C8-9D63-4D4F3D91A11D} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{2586BB7E-0AE8-4368-8AF1-C7487F508411} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

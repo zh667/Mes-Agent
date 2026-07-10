@@ -12,10 +12,6 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(user => user.Role)
-            .HasConversion<string>()
-            .HasMaxLength(20);
-
         builder.Property(user => user.RefreshToken)
             .HasMaxLength(256);
 

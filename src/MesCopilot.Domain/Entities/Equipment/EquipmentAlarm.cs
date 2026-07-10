@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Equipment;
 /// <summary>
 /// 设备报警记录。
 /// </summary>
-public class EquipmentAlarm
+public class EquipmentAlarm : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

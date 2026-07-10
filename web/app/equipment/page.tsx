@@ -1,22 +1,11 @@
 import { Activity, Bell, Gauge } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   OperationsPageShell,
   OperationsPanel,
   StatusPill,
 } from "@/components/operations/operations-page-shell";
-
-const equipmentCards = [
-  { name: "Line 1 Press", state: "Running", oee: "84.2%", alarm: "Clear" },
-  { name: "Line 2 CNC", state: "Alarm", oee: "61.5%", alarm: "A102" },
-  { name: "Line 3 Pack", state: "Idle", oee: "77.8%", alarm: "Material wait" },
-];
-
-const alarms = [
-  { time: "09:42", equipment: "Line 2 CNC", code: "A102", message: "Sensor anomaly" },
-  { time: "08:55", equipment: "Line 3 Pack", code: "W018", message: "Material wait" },
-  { time: "07:30", equipment: "Line 1 Press", code: "M004", message: "Maintenance cleared" },
-];
 
 const oeeTrends = [
   { label: "Availability", value: 82 },
@@ -25,23 +14,35 @@ const oeeTrends = [
 ];
 
 export default function EquipmentPage() {
+  const t = useTranslations("equipment");
+  const equipmentCards = [
+    { name: t("preview.line1Press"), state: t("preview.running"), tone: "good" as const, oee: "84.2%", alarm: t("preview.clear") },
+    { name: t("preview.line2Cnc"), state: t("preview.alarm"), tone: "danger" as const, oee: "61.5%", alarm: "A102" },
+    { name: t("preview.line3Pack"), state: t("preview.idle"), tone: "warning" as const, oee: "77.8%", alarm: t("preview.materialWait") },
+  ];
+  const alarms = [
+    { time: "09:42", equipment: t("preview.line2Cnc"), code: "A102", message: t("preview.sensorAnomaly") },
+    { time: "08:55", equipment: t("preview.line3Pack"), code: "W018", message: t("preview.materialWait") },
+    { time: "07:30", equipment: t("preview.line1Press"), code: "M004", message: t("preview.maintenanceCleared") },
+  ];
+  const trendLabels = [t("availability"), t("performance"), t("quality")];
   return (
     <OperationsPageShell
-      title="Equipment OEE"
-      eyebrow="Realtime Equipment"
-      description="Monitor equipment state, downtime, alarm history, and OEE trends in one shop-floor dashboard."
+      title={t("title")}
+      eyebrow={t("eyebrow")}
+      description={t("description")}
       icon={Gauge}
       metrics={[
-        { label: "Running", value: "12" },
-        { label: "Alarm", value: "2" },
-        { label: "Avg OEE", value: "78.4%" },
+        { label: t("metrics.running"), value: "12" },
+        { label: t("metrics.alarm"), value: "2" },
+        { label: t("metrics.averageOee"), value: "78.4%" },
       ]}
     >
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="grid gap-4">
           <OperationsPanel
-            title="Realtime Status"
-            description="SignalR-ready card layout for live equipment state updates."
+            title={t("realtimeStatus")}
+            description={t("realtimeDescription")}
           >
             <div className="grid gap-3 md:grid-cols-3">
               {equipmentCards.map((item) => (
@@ -52,17 +53,11 @@ export default function EquipmentPage() {
                         {item.name}
                       </h3>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Current alarm: {item.alarm}
+                        {t("currentAlarm", { alarm: item.alarm })}
                       </p>
                     </div>
                     <StatusPill
-                      tone={
-                        item.state === "Running"
-                          ? "good"
-                          : item.state === "Alarm"
-                            ? "danger"
-                            : "warning"
-                      }
+                      tone={item.tone}
                     >
                       {item.state}
                     </StatusPill>
@@ -70,21 +65,21 @@ export default function EquipmentPage() {
                   <div className="mt-4 text-2xl font-semibold tabular-nums text-foreground">
                     {item.oee}
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">OEE</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{t("oee")}</div>
                 </article>
               ))}
             </div>
           </OperationsPanel>
 
           <OperationsPanel
-            title="OEE Trend"
-            description="Compact trend bars for availability, performance, and quality."
+            title={t("oeeTrend")}
+            description={t("oeeDescription")}
           >
             <div className="grid gap-3">
-              {oeeTrends.map((trend) => (
+              {oeeTrends.map((trend, index) => (
                 <div key={trend.label}>
                   <div className="mb-1 flex justify-between text-xs">
-                    <span className="text-muted-foreground">{trend.label}</span>
+                    <span className="text-muted-foreground">{trendLabels[index]}</span>
                     <span className="font-medium tabular-nums text-foreground">
                       {trend.value}%
                     </span>
@@ -102,8 +97,8 @@ export default function EquipmentPage() {
         </div>
 
         <OperationsPanel
-          title="Alarm History"
-          description="Recent alarms and downtime reasons for supervisor review."
+          title={t("alarmHistory")}
+          description={t("alarmDescription")}
         >
           <div className="space-y-3">
             {alarms.map((alarm) => (
@@ -125,7 +120,7 @@ export default function EquipmentPage() {
           </div>
           <div className="mt-4 flex items-center gap-2 rounded-md bg-background p-3 text-sm text-muted-foreground shadow-[0_0_0_1px_rgba(0,0,0,0.06)]">
             <Activity className="h-4 w-4 text-primary" aria-hidden="true" />
-            SignalR connection placeholder ready for live patch events.
+            {t("signalrReady")}
           </div>
         </OperationsPanel>
       </section>

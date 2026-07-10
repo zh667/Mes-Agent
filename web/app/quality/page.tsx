@@ -1,4 +1,5 @@
 import { Route, Search, ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   OperationsPageShell,
@@ -6,64 +7,62 @@ import {
   StatusPill,
 } from "@/components/operations/operations-page-shell";
 
-const traceSteps = [
-  { step: "WO dispatch", time: "07:55", detail: "Line 1 / OP-10 / Operator Li" },
-  { step: "Material issue", time: "08:10", detail: "Batch MAT-AL-204 confirmed" },
-  { step: "Inspection", time: "10:35", detail: "2 defects found at OP-20" },
-];
-
-const defects = [
-  { type: "Surface scratch", count: "12", operation: "OP-20" },
-  { type: "Dimension drift", count: "5", operation: "OP-30" },
-  { type: "Missing label", count: "3", operation: "Packing" },
-];
-
 export default function QualityPage() {
+  const t = useTranslations("quality");
+  const traceSteps = [
+    { step: t("preview.dispatch"), time: "07:55", detail: t("preview.dispatchDetail") },
+    { step: t("preview.materialIssue"), time: "08:10", detail: t("preview.materialDetail") },
+    { step: t("preview.inspection"), time: "10:35", detail: t("preview.inspectionDetail") },
+  ];
+  const defects = [
+    { type: t("preview.surfaceScratch"), count: "12", operation: "OP-20" },
+    { type: t("preview.dimensionDrift"), count: "5", operation: "OP-30" },
+    { type: t("preview.missingLabel"), count: "3", operation: t("preview.packing") },
+  ];
   return (
     <OperationsPageShell
-      title="Quality Trace"
-      eyebrow="Quality Control"
-      description="Trace batches across work orders, materials, operations, operators, equipment, and defect patterns."
+      title={t("title")}
+      eyebrow={t("eyebrow")}
+      description={t("description")}
       icon={ShieldCheck}
       metrics={[
-        { label: "Inspections", value: "42" },
-        { label: "Failed", value: "5" },
-        { label: "Defects", value: "20" },
+        { label: t("metrics.inspections"), value: "42" },
+        { label: t("metrics.failed"), value: "5" },
+        { label: t("metrics.defects"), value: "20" },
       ]}
     >
       <section className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <OperationsPanel
-          title="Batch Lookup"
-          description="Search by batch number to retrieve full production and quality trace."
+          title={t("batchLookup")}
+          description={t("batchDescription")}
         >
           <label className="relative block">
-            <span className="sr-only">Search batch number</span>
+            <span className="sr-only">{t("searchBatch")}</span>
             <Search
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
               aria-hidden="true"
             />
             <input
-              aria-label="Search batch number"
+              aria-label={t("searchBatch")}
               defaultValue="B20260709-A102"
               className="min-h-11 w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none transition-[border-color,box-shadow] duration-150 focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
           </label>
           <div className="mt-4 rounded-md bg-muted p-3 text-sm">
             <div className="flex items-center justify-between gap-3">
-              <span className="font-medium text-foreground">Trace status</span>
-              <StatusPill tone="warning">Partial review</StatusPill>
+              <span className="font-medium text-foreground">{t("traceStatus")}</span>
+              <StatusPill tone="warning">{t("partialReview")}</StatusPill>
             </div>
             <p className="mt-2 text-muted-foreground">
-              Material and operation records are complete. Defect disposition is
-              pending supervisor approval.
+              {t("reviewNote")}
             </p>
           </div>
         </OperationsPanel>
 
         <div className="grid gap-4">
           <OperationsPanel
-            title="Trace Timeline"
-            description="Chronological MES evidence for the selected batch."
+            title={t("timeline")}
+            description={t("timelineDescription")}
           >
             <ol className="space-y-3">
               {traceSteps.map((step) => (
@@ -90,21 +89,21 @@ export default function QualityPage() {
           </OperationsPanel>
 
           <OperationsPanel
-            title="Defect Patterns"
-            description="Top defect classes by count and operation."
+            title={t("defectPatterns")}
+            description={t("defectDescription")}
           >
             <div className="overflow-hidden rounded-md border border-border">
               <table className="w-full text-left text-sm">
                 <thead className="bg-muted text-xs text-muted-foreground">
                   <tr>
                     <th scope="col" className="px-3 py-2 font-medium">
-                      Defect
+                      {t("columns.defect")}
                     </th>
                     <th scope="col" className="px-3 py-2 font-medium">
-                      Count
+                      {t("columns.count")}
                     </th>
                     <th scope="col" className="px-3 py-2 font-medium">
-                      Operation
+                      {t("columns.operation")}
                     </th>
                   </tr>
                 </thead>

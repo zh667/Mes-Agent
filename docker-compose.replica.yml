@@ -1,0 +1,41 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_REPLICATION_USER: ${POSTGRES_REPLICATION_USER:-replicator}
+      POSTGRES_REPLICATION_PASSWORD: ${POSTGRES_REPLICATION_PASSWORD:-replicator-local}
+    volumes:
+      - ./docker/postgres-replica/primary-init.sh:/docker-entrypoint-initdb.d/20-replication.sh:ro
+
+  postgres-replica:
+    image: pgvector/pgvector:pg16
+    container_name: mes-copilot-postgres-replica
+    restart: unless-stopped
+    environment:
+      PRIMARY_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      REPLICATION_USER: ${POSTGRES_REPLICATION_USER:-replicator}
+      REPLICATION_PASSWORD: ${POSTGRES_REPLICATION_PASSWORD:-replicator-local}
+    volumes:
+      - postgres_replica_data:/var/lib/postgresql/data
+      - ./docker/postgres-replica/replica-entrypoint.sh:/usr/local/bin/replica-entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/usr/local/bin/replica-entrypoint.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-mes_copilot} -tAc 'SELECT pg_is_in_recovery()' | grep -q t"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  api:
+    depends_on:
+      postgres-replica:
+        condition: service_healthy
+    environment:
+      ReadRouting__Enabled: "true"
+      ConnectionStrings__MesReadDatabase: Host=postgres-replica;Port=5432;Database=${POSTGRES_DB:-mes_copilot};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres};Target Session Attributes=prefer-standby
+
+volumes:
+  postgres_replica_data:

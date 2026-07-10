@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Products;
 /// <summary>
 /// 产品主数据。
 /// </summary>
-public class Product
+public class Product : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

@@ -10,6 +10,7 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
     {
         builder.ToTable("Documents");
         builder.HasKey(document => document.Id);
+        builder.ConfigureTenantEntity();
 
         builder.Property(document => document.Title).IsRequired().HasMaxLength(200);
         builder.Property(document => document.FileName).IsRequired().HasMaxLength(255);
@@ -18,7 +19,7 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(document => document.Type).IsRequired().HasConversion<string>().HasMaxLength(50);
         builder.Property(document => document.VectorizationStatus).IsRequired().HasMaxLength(30);
 
-        builder.HasIndex(document => document.FileName);
+        builder.HasIndex(document => new { document.TenantId, document.FileName });
     }
 }
 
@@ -28,18 +29,20 @@ public class DocumentVersionConfiguration : IEntityTypeConfiguration<DocumentVer
     {
         builder.ToTable("DocumentVersions");
         builder.HasKey(version => version.Id);
+        builder.ConfigureTenantEntity();
 
         builder.Property(version => version.FileName).IsRequired().HasMaxLength(255);
         builder.Property(version => version.FilePath).IsRequired().HasMaxLength(500);
         builder.Property(version => version.UploadedById).IsRequired().HasMaxLength(450);
         builder.Property(version => version.ChangeNote).HasMaxLength(500);
 
-        builder.HasIndex(version => new { version.DocumentId, version.VersionNumber }).IsUnique();
-        builder.HasIndex(version => new { version.DocumentId, version.IsActive });
+        builder.HasIndex(version => new { version.TenantId, version.DocumentId, version.VersionNumber }).IsUnique();
+        builder.HasIndex(version => new { version.TenantId, version.DocumentId, version.IsActive });
 
         builder.HasOne(version => version.Document)
             .WithMany(document => document.Versions)
-            .HasForeignKey(version => version.DocumentId)
+            .HasForeignKey(version => new { version.TenantId, version.DocumentId })
+            .HasPrincipalKey(document => new { document.TenantId, document.Id })
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
@@ -50,15 +53,17 @@ public class DocumentChunkConfiguration : IEntityTypeConfiguration<DocumentChunk
     {
         builder.ToTable("DocumentChunks");
         builder.HasKey(chunk => chunk.Id);
+        builder.ConfigureTenantEntity();
 
         builder.Property(chunk => chunk.Content).IsRequired();
         builder.Property(chunk => chunk.Vector).HasColumnType("vector(1536)");
         builder.Property(chunk => chunk.SectionTitle).HasMaxLength(200);
 
-        builder.HasIndex(chunk => new { chunk.DocumentId, chunk.Sequence }).IsUnique();
+        builder.HasIndex(chunk => new { chunk.TenantId, chunk.DocumentId, chunk.Sequence }).IsUnique();
 
         builder.HasOne(chunk => chunk.Document)
             .WithMany(document => document.Chunks)
-            .HasForeignKey(chunk => chunk.DocumentId);
+            .HasForeignKey(chunk => new { chunk.TenantId, chunk.DocumentId })
+            .HasPrincipalKey(document => new { document.TenantId, document.Id });
     }
 }

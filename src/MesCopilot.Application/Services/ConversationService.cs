@@ -104,7 +104,13 @@ public class ConversationService : IConversationService
             .ToList();
     }
 
-    public async Task AddMessageAsync(Guid conversationId, MessageRole role, string content, string? toolResults = null)
+    public async Task<Guid> AddMessageAsync(
+        Guid conversationId,
+        MessageRole role,
+        string content,
+        string? toolResults = null,
+        string? verificationJson = null,
+        int? verificationSchemaVersion = null)
     {
         string normalizedContent = NormalizeMessage(content);
         DateTime now = DateTime.UtcNow;
@@ -114,17 +120,50 @@ public class ConversationService : IConversationService
             throw new InvalidOperationException($"Conversation {conversationId} not found.");
         }
 
+        Guid messageId = Guid.NewGuid();
         _context.ConversationMessages.Add(new ConversationMessage
         {
-            Id = Guid.NewGuid(),
+            Id = messageId,
             ConversationId = conversationId,
             Role = role,
             Content = normalizedContent,
             ToolResults = toolResults,
+            VerificationJson = verificationJson,
+            VerificationSchemaVersion = verificationSchemaVersion,
             CreatedAt = now
         });
 
         conversation.UpdatedAt = now;
+        await _context.SaveChangesAsync();
+        return messageId;
+    }
+
+    public async Task<ConversationMessageVerificationSourceDto?> GetMessageVerificationSourceAsync(
+        Guid messageId,
+        string userId)
+    {
+        return await _context.ConversationMessages
+            .AsNoTracking()
+            .Where(message => message.Id == messageId && message.Conversation.UserId == userId)
+            .Select(message => new ConversationMessageVerificationSourceDto(
+                message.Id,
+                message.Conversation.Mode,
+                message.Content,
+                message.ToolResults,
+                message.VerificationJson))
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task SaveMessageVerificationAsync(Guid messageId, string verificationJson, int schemaVersion)
+    {
+        ConversationMessage? message = await _context.ConversationMessages.FirstOrDefaultAsync(item => item.Id == messageId);
+        if (message is null)
+        {
+            throw new KeyNotFoundException("Conversation message was not found.");
+        }
+
+        message.VerificationJson = verificationJson;
+        message.VerificationSchemaVersion = schemaVersion;
         await _context.SaveChangesAsync();
     }
 
@@ -251,6 +290,7 @@ public class ConversationService : IConversationService
             message.Role,
             message.Content,
             ParseToolResults(message.ToolResults),
+            ParseToolResults(message.VerificationJson),
             message.CreatedAt);
     }
 

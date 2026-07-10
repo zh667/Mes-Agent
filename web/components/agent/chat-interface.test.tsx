@@ -16,7 +16,13 @@ const agentStreamMock = vi.hoisted(() => ({
   options: undefined as
     | {
         onEvent?: (event: {
-          type: "thinking" | "token" | "tool_result" | "done" | "error";
+          type:
+            | "thinking"
+            | "token"
+            | "tool_result"
+            | "verification"
+            | "done"
+            | "error";
           content?: string | null;
           data?: unknown;
         }) => void;
@@ -131,7 +137,7 @@ describe("ChatInterface", () => {
       });
     });
 
-    expect(screen.getByText("Agent is checking MES signals")).toBeDefined();
+    expect(screen.getByText("Selecting MES tool")).toBeDefined();
 
     await act(async () => {
       agentStreamMock.options?.onEvent?.({
@@ -151,6 +157,16 @@ describe("ChatInterface", () => {
         },
       });
       agentStreamMock.options?.onEvent?.({
+        type: "verification",
+        data: {
+          status: "Verified",
+          summary: "Primary MES data matched.",
+          errorCode: null,
+          verifiedAtUtc: "2026-07-10T08:00:00Z",
+          checks: [],
+        },
+      });
+      agentStreamMock.options?.onEvent?.({
         type: "token",
         content: "I found 1 delayed work order.",
       });
@@ -159,10 +175,11 @@ describe("ChatInterface", () => {
 
     const conversation = screen.getByLabelText("Conversation history");
 
-    expect(screen.queryByText("Agent is checking MES signals")).toBeNull();
+    expect(screen.queryByText("Selecting MES tool")).toBeNull();
     expect(
       within(conversation).getByText(/I found 1 delayed work order/i),
     ).toBeDefined();
     expect(screen.getByText("WO-20260709-027")).toBeDefined();
+    expect(screen.getByText("Verified")).toBeDefined();
   });
 });

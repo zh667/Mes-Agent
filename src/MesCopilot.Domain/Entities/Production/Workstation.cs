@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Production;
 /// <summary>
 /// 工位或工作中心。
 /// </summary>
-public class Workstation
+public class Workstation : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

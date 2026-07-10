@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Products;
 /// <summary>
 /// 物料清单。
 /// </summary>
-public class Bom
+public class Bom : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>
@@ -40,4 +42,6 @@ public class Bom
     public Product Product { get; set; } = null!;
 
     public ICollection<BomItem> BomItems { get; set; } = new List<BomItem>();
+
+    public ICollection<BomItem> ParentBomItems { get; set; } = new List<BomItem>();
 }

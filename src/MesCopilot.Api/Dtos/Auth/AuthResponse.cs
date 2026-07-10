@@ -1,3 +1,5 @@
+using MesCopilot.Api.Dtos.Tenants;
+
 namespace MesCopilot.Api.Dtos.Auth;
 
 public class AuthResponse
@@ -17,5 +19,7 @@ public class UserInfo
 
     public string DisplayName { get; set; } = string.Empty;
 
-    public string Role { get; set; } = string.Empty;
+    public bool IsPlatformAdmin { get; set; }
+
+    public IReadOnlyList<TenantSummaryDto> Tenants { get; set; } = [];
 }

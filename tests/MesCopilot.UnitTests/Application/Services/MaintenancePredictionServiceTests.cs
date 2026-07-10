@@ -12,10 +12,7 @@ public sealed class MaintenancePredictionServiceTests : IDisposable
 
     public MaintenancePredictionServiceTests()
     {
-        DbContextOptions<MesDbContext> options = new DbContextOptionsBuilder<MesDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        _context = new MesDbContext(options);
+        _context = Infrastructure.Tenancy.TenantTestDbContextFactory.Create();
     }
 
     [Fact]

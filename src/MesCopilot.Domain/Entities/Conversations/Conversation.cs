@@ -2,8 +2,10 @@ using MesCopilot.Domain.Enums;
 
 namespace MesCopilot.Domain.Entities.Conversations;
 
-public class Conversation
+public class Conversation : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public Guid Id { get; set; }
 
     public string UserId { get; set; } = string.Empty;

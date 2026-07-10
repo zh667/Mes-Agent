@@ -29,8 +29,9 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
             new Claim(ClaimTypes.Name, user.DisplayName),
-            new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id)
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(MesCopilotClaimTypes.PlatformAdmin, user.IsPlatformAdmin.ToString().ToLowerInvariant())
         ];
 
         SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(GetRequiredJwtSetting("Secret")));

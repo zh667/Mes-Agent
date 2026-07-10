@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Production;
 /// <summary>
 /// 生产线。
 /// </summary>
-public class ProductionLine
+public class ProductionLine : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

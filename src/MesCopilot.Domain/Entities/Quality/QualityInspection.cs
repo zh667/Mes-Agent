@@ -6,8 +6,10 @@ namespace MesCopilot.Domain.Entities.Quality;
 /// <summary>
 /// 质检记录。
 /// </summary>
-public class QualityInspection
+public class QualityInspection : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

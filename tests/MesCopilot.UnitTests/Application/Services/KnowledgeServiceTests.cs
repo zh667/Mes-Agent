@@ -441,11 +441,7 @@ public class KnowledgeServiceTests
 
     private static MesDbContext CreateContext()
     {
-        var options = new DbContextOptionsBuilder<MesDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new MesDbContext(options);
+        return Infrastructure.Tenancy.TenantTestDbContextFactory.Create();
     }
 
     private sealed class FakeDocumentParser : IDocumentParser

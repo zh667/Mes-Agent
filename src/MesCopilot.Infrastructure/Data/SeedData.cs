@@ -1,19 +1,37 @@
 using MesCopilot.Domain.Entities.Equipment;
+using MesCopilot.Domain.Entities.Identity;
 using MesCopilot.Domain.Entities.Products;
 using MesCopilot.Domain.Entities.Production;
 using MesCopilot.Domain.Entities.Quality;
 using MesCopilot.Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using EquipmentEntity = MesCopilot.Domain.Entities.Equipment.Equipment;
 
 namespace MesCopilot.Infrastructure.Data;
 
 public static class SeedData
 {
+    public const string DefaultTenantId = "00000000-0000-0000-0000-000000000001";
+
     public static async Task SeedAsync(MesDbContext context)
     {
+        if (!await context.Tenants.AnyAsync(tenant => tenant.Id == DefaultTenantId))
+        {
+            context.Tenants.Add(new Tenant
+            {
+                Id = DefaultTenantId,
+                Code = "DEFAULT",
+                Name = "Default Tenant",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
         if (await context.Products.AnyAsync())
         {
+            await context.SaveChangesAsync();
             return;
         }
 
@@ -77,5 +95,62 @@ public static class SeedData
         }));
 
         await context.SaveChangesAsync();
+    }
+
+    public static async Task SeedBootstrapAdminAsync(
+        MesDbContext context,
+        UserManager<AppUser> userManager,
+        IConfiguration configuration)
+    {
+        string? email = configuration["BootstrapAdminEmail"]?.Trim();
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return;
+        }
+
+        AppUser? user = await userManager.FindByEmailAsync(email);
+        if (user is null)
+        {
+            string password = configuration["BootstrapAdminPassword"] ??
+                throw new InvalidOperationException("BootstrapAdminPassword is required when creating the bootstrap administrator.");
+            user = new AppUser
+            {
+                UserName = email,
+                Email = email,
+                DisplayName = configuration["BootstrapAdminDisplayName"]?.Trim() ?? "Platform Administrator",
+                IsPlatformAdmin = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            IdentityResult createResult = await userManager.CreateAsync(user, password);
+            if (!createResult.Succeeded)
+            {
+                string errors = string.Join("; ", createResult.Errors.Select(error => error.Description));
+                throw new InvalidOperationException($"Bootstrap administrator creation failed: {errors}");
+            }
+        }
+        else if (!user.IsPlatformAdmin)
+        {
+            user.IsPlatformAdmin = true;
+            IdentityResult updateResult = await userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                throw new InvalidOperationException("Bootstrap administrator could not be promoted.");
+            }
+        }
+
+        bool hasMembership = await context.UserTenantMemberships.AnyAsync(
+            membership => membership.UserId == user.Id && membership.TenantId == DefaultTenantId);
+        if (!hasMembership)
+        {
+            context.UserTenantMemberships.Add(new UserTenantMembership
+            {
+                UserId = user.Id,
+                TenantId = DefaultTenantId,
+                Role = UserRole.Admin,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+        }
     }
 }

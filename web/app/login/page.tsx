@@ -1,10 +1,13 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
+  const common = useTranslations("common");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +32,7 @@ export default function LoginPage() {
       return;
     }
 
-    setError("Invalid email or password");
+    setError(t("invalid"));
   }
 
   return (
@@ -38,15 +41,14 @@ export default function LoginPage() {
         <section className="grid w-full gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div className="space-y-6">
             <div className="inline-flex items-center rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-sm font-medium text-cyan-100">
-              Manufacturing operations workspace
+              {t("badge")}
             </div>
             <div className="space-y-4">
               <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                MES Copilot
+                {common("brand")}
               </h1>
               <p className="max-w-xl text-lg leading-8 text-slate-300">
-                Secure access for production, quality, equipment, and knowledge
-                teams working across the shop floor.
+                {t("description")}
               </p>
             </div>
           </div>
@@ -56,15 +58,15 @@ export default function LoginPage() {
             onSubmit={handleSubmit}
           >
             <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-white">Sign in</h2>
+              <h2 className="text-2xl font-semibold text-white">{t("signIn")}</h2>
               <p className="text-sm text-slate-400">
-                Use your MES Copilot operator credentials.
+                {t("hint")}
               </p>
             </div>
 
             <div className="mt-6 space-y-4">
               <label className="block text-sm font-medium text-slate-200">
-                Email
+                {t("email")}
                 <input
                   className="mt-2 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none transition focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20"
                   name="email"
@@ -76,7 +78,7 @@ export default function LoginPage() {
               </label>
 
               <label className="block text-sm font-medium text-slate-200">
-                Password
+                {t("password")}
                 <input
                   className="mt-2 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none transition focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20"
                   name="password"
@@ -99,7 +101,7 @@ export default function LoginPage() {
               disabled={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? "Signing in..." : "Sign in"}
+              {isSubmitting ? t("signingIn") : t("signIn")}
             </button>
           </form>
         </section>

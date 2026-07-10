@@ -42,10 +42,16 @@ Expected commands when available:
 
 ```powershell
 pnpm lint
+pnpm check:i18n
 pnpm typecheck
 pnpm test
 pnpm build
 ```
+
+Localization changes must keep `en-US` and `zh-CN` keys identical and
+non-empty. Add component coverage for translated labels or interpolation when
+behavior changes, and retain an E2E check that locale selection survives a
+reload without changing the route.
 
 ## MES Test Scenarios
 

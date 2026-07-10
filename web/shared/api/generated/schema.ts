@@ -16,7 +16,10 @@ export interface paths {
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -28,12 +31,25 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description OK */
-                200: {
+                /** @description Bad Request */
+                400: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/plain": components["schemas"]["ApiProblemDetails"];
+                        "application/json": components["schemas"]["ApiProblemDetails"];
+                        "text/json": components["schemas"]["ApiProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
                 };
             };
         };
@@ -56,7 +72,10 @@ export interface paths {
                     page?: number;
                     pageSize?: number;
                 };
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -68,6 +87,24 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
                 };
             };
         };
@@ -93,7 +130,10 @@ export interface paths {
                     skip?: number;
                     take?: number;
                 };
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -108,6 +148,24 @@ export interface paths {
                         "text/plain": components["schemas"]["ConversationSearchResultDto"][];
                         "application/json": components["schemas"]["ConversationSearchResultDto"][];
                         "text/json": components["schemas"]["ConversationSearchResultDto"][];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -130,7 +188,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: string;
                 };
@@ -144,6 +205,24 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
                 };
             };
         };
@@ -152,7 +231,10 @@ export interface paths {
         delete: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: string;
                 };
@@ -167,8 +249,418 @@ export interface paths {
                     };
                     content?: never;
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/messages/{messageId}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    messageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["VerificationResultDto"];
+                        "application/json": components["schemas"]["VerificationResultDto"];
+                        "text/json": components["schemas"]["VerificationResultDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent/messages/{messageId}/verification/recheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    messageId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["VerificationResultDto"];
+                        "application/json": components["schemas"]["VerificationResultDto"];
+                        "text/json": components["schemas"]["VerificationResultDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/audit/operations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    skip?: number;
+                    take?: number;
+                };
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AuditLogDtoPagedAuditResultDto"];
+                        "application/json": components["schemas"]["AuditLogDtoPagedAuditResultDto"];
+                        "text/json": components["schemas"]["AuditLogDtoPagedAuditResultDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/audit/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    entityType?: string;
+                    skip?: number;
+                    take?: number;
+                };
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DataChangeLogDtoPagedAuditResultDto"];
+                        "application/json": components["schemas"]["DataChangeLogDtoPagedAuditResultDto"];
+                        "text/json": components["schemas"]["DataChangeLogDtoPagedAuditResultDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/audit/agent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    status?: string;
+                    skip?: number;
+                    take?: number;
+                };
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["AgentAuditLogDtoPagedAuditResultDto"];
+                        "application/json": components["schemas"]["AgentAuditLogDtoPagedAuditResultDto"];
+                        "text/json": components["schemas"]["AgentAuditLogDtoPagedAuditResultDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/audit/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    category?: string;
+                    format?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -373,6 +865,674 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/bom/explode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["BomExplosionRequest"];
+                    "text/json": components["schemas"]["BomExplosionRequest"];
+                    "application/*+json": components["schemas"]["BomExplosionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BomExplosionResultDto"];
+                        "application/json": components["schemas"]["BomExplosionResultDto"];
+                        "text/json": components["schemas"]["BomExplosionResultDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BomErrorResponse"];
+                        "application/json": components["schemas"]["BomErrorResponse"];
+                        "text/json": components["schemas"]["BomErrorResponse"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BomErrorResponse"];
+                        "application/json": components["schemas"]["BomErrorResponse"];
+                        "text/json": components["schemas"]["BomErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BomErrorResponse"];
+                        "application/json": components["schemas"]["BomErrorResponse"];
+                        "text/json": components["schemas"]["BomErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bom/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BomProductOptionDto"][];
+                        "application/json": components["schemas"]["BomProductOptionDto"][];
+                        "text/json": components["schemas"]["BomProductOptionDto"][];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bom/{productId}/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    productId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BomExplosionResultDto"];
+                        "application/json": components["schemas"]["BomExplosionResultDto"];
+                        "text/json": components["schemas"]["BomExplosionResultDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BomErrorResponse"];
+                        "application/json": components["schemas"]["BomErrorResponse"];
+                        "text/json": components["schemas"]["BomErrorResponse"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["BomErrorResponse"];
+                        "application/json": components["schemas"]["BomErrorResponse"];
+                        "text/json": components["schemas"]["BomErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device-connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DeviceConnectionDto"][];
+                        "application/json": components["schemas"]["DeviceConnectionDto"][];
+                        "text/json": components["schemas"]["DeviceConnectionDto"][];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DeviceConnectionRequest"];
+                    "text/json": components["schemas"]["DeviceConnectionRequest"];
+                    "application/*+json": components["schemas"]["DeviceConnectionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DeviceConnectionDto"];
+                        "application/json": components["schemas"]["DeviceConnectionDto"];
+                        "text/json": components["schemas"]["DeviceConnectionDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device-connections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DeviceConnectionRequest"];
+                    "text/json": components["schemas"]["DeviceConnectionRequest"];
+                    "application/*+json": components["schemas"]["DeviceConnectionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["DeviceConnectionDto"];
+                        "application/json": components["schemas"]["DeviceConnectionDto"];
+                        "text/json": components["schemas"]["DeviceConnectionDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device-connections/{id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device-connections/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device-connections/{id}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device-connections/{id}/realtime": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["EquipmentStatusUpdate"];
+                        "application/json": components["schemas"]["EquipmentStatusUpdate"];
+                        "text/json": components["schemas"]["EquipmentStatusUpdate"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/Documents": {
         parameters: {
             query?: never;
@@ -383,7 +1543,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -400,13 +1563,34 @@ export interface paths {
                         "text/json": components["schemas"]["DocumentDto"][];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         put?: never;
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -429,6 +1613,24 @@ export interface paths {
                         "text/json": components["schemas"]["DocumentDto"];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -447,7 +1649,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -466,6 +1671,24 @@ export interface paths {
                         "text/json": components["schemas"]["DocumentDto"];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         put?: never;
@@ -473,7 +1696,10 @@ export interface paths {
         delete: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -487,6 +1713,24 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
                 };
             };
         };
@@ -505,7 +1749,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -524,13 +1771,34 @@ export interface paths {
                         "text/json": components["schemas"]["DocumentVersionDto"][];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         put?: never;
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -557,6 +1825,24 @@ export interface paths {
                         "text/json": components["schemas"]["DocumentVersionDto"];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -577,7 +1863,10 @@ export interface paths {
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                     versionId: number;
@@ -592,6 +1881,24 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
                 };
             };
         };
@@ -611,7 +1918,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -626,6 +1936,24 @@ export interface paths {
                         "text/plain": components["schemas"]["EquipmentDto"][];
                         "application/json": components["schemas"]["EquipmentDto"][];
                         "text/json": components["schemas"]["EquipmentDto"][];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -648,7 +1976,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -665,6 +1996,24 @@ export interface paths {
                         "text/plain": components["schemas"]["EquipmentDto"];
                         "application/json": components["schemas"]["EquipmentDto"];
                         "text/json": components["schemas"]["EquipmentDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -687,7 +2036,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -704,6 +2056,24 @@ export interface paths {
                         "text/plain": components["schemas"]["EquipmentStatusDto"][];
                         "application/json": components["schemas"]["EquipmentStatusDto"][];
                         "text/json": components["schemas"]["EquipmentStatusDto"][];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -726,7 +2096,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -743,6 +2116,24 @@ export interface paths {
                         "text/plain": components["schemas"]["EquipmentAlarmDto"][];
                         "application/json": components["schemas"]["EquipmentAlarmDto"][];
                         "text/json": components["schemas"]["EquipmentAlarmDto"][];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -767,7 +2158,10 @@ export interface paths {
                 query?: {
                     date?: string;
                 };
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -784,6 +2178,24 @@ export interface paths {
                         "text/plain": components["schemas"]["OeeDto"];
                         "application/json": components["schemas"]["OeeDto"];
                         "text/json": components["schemas"]["OeeDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -839,7 +2251,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -856,13 +2271,34 @@ export interface paths {
                         "text/json": components["schemas"]["QualityInspectionDto"][];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         put?: never;
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -885,6 +2321,24 @@ export interface paths {
                         "text/json": components["schemas"]["QualityInspectionDto"];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -903,7 +2357,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     batchNumber: string;
                 };
@@ -920,6 +2377,24 @@ export interface paths {
                         "text/plain": components["schemas"]["BatchTraceDto"];
                         "application/json": components["schemas"]["BatchTraceDto"];
                         "text/json": components["schemas"]["BatchTraceDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -942,7 +2417,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -957,6 +2435,24 @@ export interface paths {
                         "text/plain": components["schemas"]["DefectAnalysisDto"][];
                         "application/json": components["schemas"]["DefectAnalysisDto"][];
                         "text/json": components["schemas"]["DefectAnalysisDto"][];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -983,7 +2479,10 @@ export interface paths {
                     lineId?: number;
                     format?: string;
                 };
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -1005,6 +2504,15 @@ export interface paths {
                         "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
                         "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -1031,7 +2539,10 @@ export interface paths {
                     to?: string;
                     format?: string;
                 };
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -1053,6 +2564,15 @@ export interface paths {
                         "text/plain": components["schemas"]["ProblemDetails"];
                         "application/json": components["schemas"]["ProblemDetails"];
                         "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -1080,7 +2600,10 @@ export interface paths {
                     to?: string;
                     format?: string;
                 };
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -1104,6 +2627,15 @@ export interface paths {
                         "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         put?: never;
@@ -1114,7 +2646,258 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/WorkOrders": {
+    "/api/scheduling/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["GenerateScheduleRequest"];
+                    "text/json": components["schemas"]["GenerateScheduleRequest"];
+                    "application/*+json": components["schemas"]["GenerateScheduleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ScheduleGenerationResultDto"];
+                        "application/json": components["schemas"]["ScheduleGenerationResultDto"];
+                        "text/json": components["schemas"]["ScheduleGenerationResultDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduling/gantt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["GanttScheduleDto"];
+                        "application/json": components["schemas"]["GanttScheduleDto"];
+                        "text/json": components["schemas"]["GanttScheduleDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduling/workorders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ScheduledWorkOrderDto"];
+                        "application/json": components["schemas"]["ScheduledWorkOrderDto"];
+                        "text/json": components["schemas"]["ScheduledWorkOrderDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scheduling/operations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AdjustOperationRequest"];
+                    "text/json": components["schemas"]["AdjustOperationRequest"];
+                    "application/*+json": components["schemas"]["AdjustOperationRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ScheduledOperationDto"];
+                        "application/json": components["schemas"]["ScheduledOperationDto"];
+                        "text/json": components["schemas"]["ScheduledOperationDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/mine": {
         parameters: {
             query?: never;
             header?: never;
@@ -1136,9 +2919,143 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["WorkOrderDto"][];
-                        "application/json": components["schemas"]["WorkOrderDto"][];
-                        "text/json": components["schemas"]["WorkOrderDto"][];
+                        "text/plain": components["schemas"]["TenantSummaryDto"][];
+                        "application/json": components["schemas"]["TenantSummaryDto"][];
+                        "text/json": components["schemas"]["TenantSummaryDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantSummaryDto"];
+                        "application/json": components["schemas"]["TenantSummaryDto"];
+                        "text/json": components["schemas"]["TenantSummaryDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/switch/{tenantId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantSummaryDto"];
+                        "application/json": components["schemas"]["TenantSummaryDto"];
+                        "text/json": components["schemas"]["TenantSummaryDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantSummaryDto"][];
+                        "application/json": components["schemas"]["TenantSummaryDto"][];
+                        "text/json": components["schemas"]["TenantSummaryDto"][];
                     };
                 };
             };
@@ -1148,6 +3065,272 @@ export interface paths {
             parameters: {
                 query?: never;
                 header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateTenantRequest"];
+                    "text/json": components["schemas"]["CreateTenantRequest"];
+                    "application/*+json": components["schemas"]["CreateTenantRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantSummaryDto"];
+                        "application/json": components["schemas"]["TenantSummaryDto"];
+                        "text/json": components["schemas"]["TenantSummaryDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/{tenantId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTenantRequest"];
+                    "text/json": components["schemas"]["UpdateTenantRequest"];
+                    "application/*+json": components["schemas"]["UpdateTenantRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantSummaryDto"];
+                        "application/json": components["schemas"]["TenantSummaryDto"];
+                        "text/json": components["schemas"]["TenantSummaryDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/{tenantId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantMemberDto"][];
+                        "application/json": components["schemas"]["TenantMemberDto"][];
+                        "text/json": components["schemas"]["TenantMemberDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AddTenantMemberRequest"];
+                    "text/json": components["schemas"]["AddTenantMemberRequest"];
+                    "application/*+json": components["schemas"]["AddTenantMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantMemberDto"];
+                        "application/json": components["schemas"]["TenantMemberDto"];
+                        "text/json": components["schemas"]["TenantMemberDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/{tenantId}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenantId: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTenantMemberRequest"];
+                    "text/json": components["schemas"]["UpdateTenantMemberRequest"];
+                    "application/*+json": components["schemas"]["UpdateTenantMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["TenantMemberDto"];
+                        "application/json": components["schemas"]["TenantMemberDto"];
+                        "text/json": components["schemas"]["TenantMemberDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/WorkOrders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["WorkOrderDto"][];
+                        "application/json": components["schemas"]["WorkOrderDto"][];
+                        "text/json": components["schemas"]["WorkOrderDto"][];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path?: never;
                 cookie?: never;
             };
@@ -1170,6 +3353,24 @@ export interface paths {
                         "text/json": components["schemas"]["WorkOrderDto"];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -1188,7 +3389,10 @@ export interface paths {
         get: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -1205,6 +3409,24 @@ export interface paths {
                         "text/plain": components["schemas"]["WorkOrderDto"];
                         "application/json": components["schemas"]["WorkOrderDto"];
                         "text/json": components["schemas"]["WorkOrderDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -1229,7 +3451,10 @@ export interface paths {
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -1246,6 +3471,24 @@ export interface paths {
                         "text/plain": components["schemas"]["WorkOrderDto"];
                         "application/json": components["schemas"]["WorkOrderDto"];
                         "text/json": components["schemas"]["WorkOrderDto"];
+                    };
+                };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
                     };
                 };
             };
@@ -1268,7 +3511,10 @@ export interface paths {
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -1293,6 +3539,24 @@ export interface paths {
                         "text/json": components["schemas"]["WorkOrderDto"];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -1313,7 +3577,10 @@ export interface paths {
         post: {
             parameters: {
                 query?: never;
-                header?: never;
+                header: {
+                    /** @description Active tenant selected from the authenticated user's memberships. */
+                    "X-Tenant-Id": string;
+                };
                 path: {
                     id: number;
                 };
@@ -1332,6 +3599,24 @@ export interface paths {
                         "text/json": components["schemas"]["WorkOrderDto"];
                     };
                 };
+                /** @description Tenant selection is required. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
+                /** @description Tenant membership is missing or inactive. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["TenantProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -1344,100 +3629,308 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AddTenantMemberRequest: {
+            email: string;
+            role: string;
+        };
+        AdjustOperationRequest: {
+            /** Format: int32 */
+            equipmentId: number;
+            /** Format: date-time */
+            plannedStartUtc: string;
+            /** Format: date-time */
+            plannedEndUtc: string;
+            /** Format: int32 */
+            version: number;
+        };
+        AgentAuditLogDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            timestamp: string;
+            userId: string;
+            /** Format: uuid */
+            conversationId?: string | null;
+            mode: components["schemas"]["AgentMode"];
+            status: string;
+            toolName?: string | null;
+            queryDigest?: string | null;
+            isVerified?: boolean | null;
+            discrepancies?: string | null;
+            /** Format: int64 */
+            durationMilliseconds: number;
+            correlationId?: string | null;
+        };
+        AgentAuditLogDtoPagedAuditResultDto: {
+            items: components["schemas"]["AgentAuditLogDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            skip: number;
+            /** Format: int32 */
+            take: number;
+        };
         /**
          * Format: int32
          * @enum {integer}
          */
         AgentMode: 0 | 1 | 2 | 3;
+        ApiProblemDetails: {
+            type?: string | null;
+            title?: string | null;
+            /** Format: int32 */
+            status?: number | null;
+            detail?: string | null;
+            instance?: string | null;
+            code: string;
+        } & {
+            [key: string]: unknown;
+        };
+        AuditLogDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            timestamp: string;
+            userId?: string | null;
+            method: string;
+            routeTemplate: string;
+            queryKeys: string;
+            /** Format: int32 */
+            statusCode: number;
+            /** Format: int64 */
+            durationMilliseconds: number;
+            requestBody?: string | null;
+            correlationId?: string | null;
+            ipHash?: string | null;
+        };
+        AuditLogDtoPagedAuditResultDto: {
+            items: components["schemas"]["AuditLogDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            skip: number;
+            /** Format: int32 */
+            take: number;
+        };
         AuthResponse: {
-            accessToken?: string | null;
-            refreshToken?: string | null;
-            user?: components["schemas"]["UserInfo"];
+            accessToken: string;
+            refreshToken: string;
+            user: components["schemas"]["UserInfo"];
         };
         BatchTraceDto: {
-            batchNumber?: string | null;
-            productionReports?: components["schemas"]["ProductionReportTraceDto"][] | null;
-            inspections?: components["schemas"]["QualityInspectionDto"][] | null;
+            batchNumber: string;
+            productionReports: components["schemas"]["ProductionReportTraceDto"][];
+            inspections: components["schemas"]["QualityInspectionDto"][];
+        };
+        BomErrorResponse: {
+            code: string;
+            message?: string | null;
+        };
+        BomExplosionItemDto: {
+            /** Format: int32 */
+            materialId: number;
+            materialCode: string;
+            materialName: string;
+            unit: string;
+            /** Format: double */
+            requiredQuantity: number;
+            /** Format: double */
+            availableQuantity: number;
+            /** Format: double */
+            shortageQuantity: number;
+            /** Format: int32 */
+            depth: number;
+            path: string[];
+        };
+        BomExplosionRequest: {
+            /** Format: double */
+            quantity: number;
+            /** Format: int32 */
+            productId: number;
+        };
+        BomExplosionResultDto: {
+            /** Format: int32 */
+            productId: number;
+            productCode: string;
+            productName: string;
+            /** Format: double */
+            quantity: number;
+            items: components["schemas"]["BomExplosionItemDto"][];
+            totalMaterials: components["schemas"]["BomMaterialSummaryDto"][];
+        };
+        BomMaterialSummaryDto: {
+            /** Format: int32 */
+            materialId: number;
+            materialCode: string;
+            materialName: string;
+            unit: string;
+            /** Format: double */
+            requiredQuantity: number;
+            /** Format: double */
+            availableQuantity: number;
+            /** Format: double */
+            shortageQuantity: number;
+        };
+        BomProductOptionDto: {
+            /** Format: int32 */
+            productId: number;
+            code: string;
+            name: string;
+            bomVersion: string;
         };
         ChatRequest: {
             /** Format: uuid */
             conversationId?: string | null;
-            mode?: components["schemas"]["AgentMode"];
-            message?: string | null;
-            debugMode?: boolean;
+            mode: components["schemas"]["AgentMode"];
+            message: string;
+            debugMode: boolean;
         };
         ConversationSearchResultDto: {
             /** Format: uuid */
-            conversationId?: string;
-            title?: string | null;
-            matchedSnippet?: string | null;
+            conversationId: string;
+            title: string;
+            matchedSnippet: string;
             /** Format: date-time */
-            lastMessageAt?: string;
+            lastMessageAt: string;
             /** Format: int32 */
-            messageCount?: number;
+            messageCount: number;
         };
         CreateDocumentRequest: {
-            title?: string | null;
-            fileName?: string | null;
-            filePath?: string | null;
-            type?: components["schemas"]["DocumentType"];
+            title: string;
+            fileName: string;
+            filePath: string;
+            type: components["schemas"]["DocumentType"];
             /** Format: int64 */
-            fileSize?: number;
-            mimeType?: string | null;
+            fileSize: number;
+            mimeType: string;
             description?: string | null;
         };
         CreateQualityInspectionRequest: {
-            code?: string | null;
-            batchNumber?: string | null;
+            code: string;
+            batchNumber: string;
             /** Format: int32 */
-            workOrderId?: number;
+            workOrderId: number;
             /** Format: int32 */
-            processStepId?: number;
-            inspectorId?: string | null;
-            inspectorName?: string | null;
+            processStepId: number;
+            inspectorId: string;
+            inspectorName: string;
             /** Format: int32 */
-            inspectedQuantity?: number;
+            inspectedQuantity: number;
             /** Format: int32 */
-            passedQuantity?: number;
+            passedQuantity: number;
             /** Format: int32 */
-            failedQuantity?: number;
-            status?: components["schemas"]["InspectionStatus"];
+            failedQuantity: number;
+            status: components["schemas"]["InspectionStatus"];
             remarks?: string | null;
         };
+        CreateTenantRequest: {
+            code: string;
+            name: string;
+        };
         CreateWorkOrderRequest: {
-            code?: string | null;
+            code: string;
             /** Format: int32 */
-            productId?: number;
+            productId: number;
             /** Format: int32 */
-            productionLineId?: number;
+            productionLineId: number;
             /** Format: int32 */
-            plannedQuantity?: number;
+            plannedQuantity: number;
             /** Format: date-time */
-            plannedStartTime?: string;
+            plannedStartTime: string;
             /** Format: date-time */
-            plannedEndTime?: string;
+            plannedEndTime: string;
+        };
+        DataChangeLogDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            timestamp: string;
+            userId?: string | null;
+            entityType: string;
+            entityId: string;
+            changeType: string;
+            oldValues?: string | null;
+            newValues: string;
+            correlationId?: string | null;
+        };
+        DataChangeLogDtoPagedAuditResultDto: {
+            items: components["schemas"]["DataChangeLogDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            skip: number;
+            /** Format: int32 */
+            take: number;
         };
         DefectAnalysisDto: {
             /** Format: int32 */
-            defectTypeId?: number;
-            defectTypeCode?: string | null;
-            defectTypeName?: string | null;
+            defectTypeId: number;
+            defectTypeCode: string;
+            defectTypeName: string;
             /** Format: int32 */
-            totalQuantity?: number;
+            totalQuantity: number;
         };
+        DeviceConnectionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** Format: int32 */
+            equipmentId: number;
+            equipmentCode: string;
+            protocol: components["schemas"]["DeviceProtocol"];
+            host: string;
+            /** Format: int32 */
+            port: number;
+            endpoint: string;
+            hasCredentials: boolean;
+            useTls: boolean;
+            allowInsecure: boolean;
+            isEnabled: boolean;
+            /** Format: date-time */
+            lastConnectedAt?: string | null;
+            lastErrorCode?: string | null;
+        };
+        DeviceConnectionRequest: {
+            name: string;
+            /** Format: int32 */
+            equipmentId: number;
+            protocol: components["schemas"]["DeviceProtocol"];
+            host: string;
+            /** Format: int32 */
+            port: number;
+            endpoint: string;
+            username?: string | null;
+            password?: string | null;
+            certificateThumbprint?: string | null;
+            /** Format: int32 */
+            unitId: number;
+            /** Format: int32 */
+            registerAddress: number;
+            /** Format: int32 */
+            registerCount: number;
+            /** Format: int32 */
+            pollIntervalMilliseconds: number;
+            useTls: boolean;
+            allowInsecure: boolean;
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        DeviceProtocol: 0 | 1 | 2;
         DocumentDto: {
             /** Format: int32 */
-            id?: number;
-            title?: string | null;
-            fileName?: string | null;
-            filePath?: string | null;
-            type?: components["schemas"]["DocumentType"];
+            id: number;
+            title: string;
+            fileName: string;
+            filePath: string;
+            type: components["schemas"]["DocumentType"];
             /** Format: int64 */
-            fileSize?: number;
-            mimeType?: string | null;
+            fileSize: number;
+            mimeType: string;
             /** Format: date-time */
-            uploadedAt?: string;
-            vectorizationStatus?: string | null;
+            uploadedAt: string;
+            vectorizationStatus: string;
             description?: string | null;
         };
         /**
@@ -1447,29 +3940,29 @@ export interface components {
         DocumentType: 0 | 1 | 2 | 3;
         DocumentVersionDto: {
             /** Format: int32 */
-            id?: number;
+            id: number;
             /** Format: int32 */
-            versionNumber?: number;
-            fileName?: string | null;
-            changeNote?: string | null;
-            uploadedById?: string | null;
+            versionNumber: number;
+            fileName: string;
+            changeNote: string;
+            uploadedById: string;
             /** Format: date-time */
-            uploadedAt?: string;
+            uploadedAt: string;
             /** Format: int64 */
-            fileSizeBytes?: number;
-            isActive?: boolean;
+            fileSizeBytes: number;
+            isActive: boolean;
         };
         EquipmentAlarmDto: {
             /** Format: int32 */
-            id?: number;
+            id: number;
             /** Format: int32 */
-            equipmentId?: number;
-            alarmCode?: string | null;
-            message?: string | null;
+            equipmentId: number;
+            alarmCode: string;
+            message: string;
             /** Format: int32 */
-            level?: number;
+            level: number;
             /** Format: date-time */
-            occurredAt?: string;
+            occurredAt: string;
             /** Format: date-time */
             acknowledgedAt?: string | null;
             /** Format: date-time */
@@ -1479,18 +3972,18 @@ export interface components {
         };
         EquipmentDto: {
             /** Format: int32 */
-            id?: number;
-            code?: string | null;
-            name?: string | null;
+            id: number;
+            code: string;
+            name: string;
             model?: string | null;
             /** Format: int32 */
             productionLineId?: number | null;
             productionLineName?: string | null;
             /** Format: int32 */
-            ratedCapacity?: number;
+            ratedCapacity: number;
             /** Format: double */
-            idealCycleTime?: number;
-            isActive?: boolean;
+            idealCycleTime: number;
+            isActive: boolean;
         };
         /**
          * Format: int32
@@ -1499,17 +3992,46 @@ export interface components {
         EquipmentState: 0 | 1 | 2 | 3 | 4;
         EquipmentStatusDto: {
             /** Format: int32 */
-            id?: number;
+            id: number;
             /** Format: int32 */
-            equipmentId?: number;
-            state?: components["schemas"]["EquipmentState"];
+            equipmentId: number;
+            state: components["schemas"]["EquipmentState"];
             /** Format: date-time */
-            startTime?: string;
+            startTime: string;
             /** Format: date-time */
             endTime?: string | null;
             /** Format: int32 */
             durationMinutes?: number | null;
             remarks?: string | null;
+        };
+        EquipmentStatusUpdate: {
+            /** Format: int32 */
+            equipmentId: number;
+            equipmentCode: string;
+            /** Format: int32 */
+            productionLineId?: number | null;
+            state: string;
+            /** Format: date-time */
+            timestamp: string;
+        };
+        GanttEquipmentRowDto: {
+            /** Format: int32 */
+            equipmentId: number;
+            equipmentCode: string;
+            equipmentName: string;
+            operations: components["schemas"]["ScheduledOperationDto"][];
+        };
+        GanttScheduleDto: {
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            to: string;
+            equipmentRows: components["schemas"]["GanttEquipmentRowDto"][];
+        };
+        GenerateScheduleRequest: {
+            workOrderIds: number[];
+            /** Format: date-time */
+            scheduleStartUtc: string;
         };
         /**
          * Format: int32
@@ -1523,23 +4045,23 @@ export interface components {
         };
         OeeDto: {
             /** Format: int32 */
-            equipmentId?: number;
+            equipmentId: number;
             /** Format: date-time */
-            date?: string;
+            date: string;
             /** Format: double */
-            availability?: number;
+            availability: number;
             /** Format: double */
-            performance?: number;
+            performance: number;
             /** Format: double */
-            quality?: number;
+            quality: number;
             /** Format: double */
-            oee?: number;
+            oee: number;
             /** Format: int32 */
-            totalOutput?: number;
+            totalOutput: number;
             /** Format: int32 */
-            qualifiedOutput?: number;
+            qualifiedOutput: number;
             /** Format: int32 */
-            runningMinutes?: number;
+            runningMinutes: number;
         };
         ProblemDetails: {
             type?: string | null;
@@ -1553,43 +4075,43 @@ export interface components {
         };
         ProductionReportTraceDto: {
             /** Format: int32 */
-            id?: number;
-            batchNumber?: string | null;
+            id: number;
+            batchNumber: string;
             /** Format: int32 */
-            workOrderId?: number;
+            workOrderId: number;
             /** Format: int32 */
-            processStepId?: number;
+            processStepId: number;
             /** Format: int32 */
-            equipmentId?: number;
-            operatorId?: string | null;
-            operatorName?: string | null;
+            equipmentId: number;
+            operatorId: string;
+            operatorName: string;
             /** Format: date-time */
-            timestamp?: string;
+            timestamp: string;
             /** Format: int32 */
-            quantity?: number;
+            quantity: number;
             /** Format: int32 */
-            qualifiedQuantity?: number;
+            qualifiedQuantity: number;
         };
         QualityInspectionDto: {
             /** Format: int32 */
-            id?: number;
-            code?: string | null;
-            batchNumber?: string | null;
+            id: number;
+            code: string;
+            batchNumber: string;
             /** Format: int32 */
-            workOrderId?: number;
+            workOrderId: number;
             /** Format: int32 */
-            processStepId?: number;
-            inspectorId?: string | null;
-            inspectorName?: string | null;
+            processStepId: number;
+            inspectorId: string;
+            inspectorName: string;
             /** Format: int32 */
-            inspectedQuantity?: number;
+            inspectedQuantity: number;
             /** Format: int32 */
-            passedQuantity?: number;
+            passedQuantity: number;
             /** Format: int32 */
-            failedQuantity?: number;
-            status?: components["schemas"]["InspectionStatus"];
+            failedQuantity: number;
+            status: components["schemas"]["InspectionStatus"];
             /** Format: date-time */
-            inspectionTime?: string;
+            inspectionTime: string;
             remarks?: string | null;
         };
         RefreshRequest: {
@@ -1601,49 +4123,124 @@ export interface components {
             email: string;
             password: string;
             displayName: string;
-            role?: string | null;
         };
         ReportProductionRequest: {
             /** Format: int32 */
-            quantity?: number;
+            quantity: number;
             /** Format: int32 */
-            qualifiedQuantity?: number;
-            operatorId?: string | null;
-            operatorName?: string | null;
+            qualifiedQuantity: number;
+            operatorId: string;
+            operatorName: string;
+        };
+        ScheduleGenerationResultDto: {
+            workOrderIds: number[];
+            operations: components["schemas"]["ScheduledOperationDto"][];
+        };
+        ScheduledOperationDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            workOrderId: number;
+            workOrderCode: string;
+            /** Format: int32 */
+            processStepId: number;
+            processStepName: string;
+            /** Format: int32 */
+            sequence: number;
+            /** Format: int32 */
+            equipmentId: number;
+            equipmentCode: string;
+            /** Format: date-time */
+            plannedStartTime: string;
+            /** Format: date-time */
+            plannedEndTime: string;
+            /** Format: int32 */
+            version: number;
+        };
+        ScheduledWorkOrderDto: {
+            /** Format: int32 */
+            workOrderId: number;
+            code: string;
+            status: components["schemas"]["WorkOrderStatus"];
+            operations: components["schemas"]["ScheduledOperationDto"][];
+        };
+        TenantMemberDto: {
+            userId: string;
+            email: string;
+            displayName: string;
+            role: string;
+            isActive: boolean;
+        };
+        TenantProblemDetails: {
+            code: string;
+            title: string;
+            /** Format: int32 */
+            status: number;
+        };
+        TenantSummaryDto: {
+            id: string;
+            code: string;
+            name: string;
+            role: string;
+            isActive: boolean;
+        };
+        UpdateTenantMemberRequest: {
+            role: string;
+            isActive: boolean;
+        };
+        UpdateTenantRequest: {
+            name: string;
+            isActive: boolean;
         };
         UserInfo: {
-            id?: string | null;
-            email?: string | null;
-            displayName?: string | null;
-            role?: string | null;
+            id: string;
+            email: string;
+            displayName: string;
+            isPlatformAdmin: boolean;
+            tenants: components["schemas"]["TenantSummaryDto"][];
+        };
+        VerificationCheckDto: {
+            claim: string;
+            claimedValue: string;
+            actualValue: string;
+            rule: string;
+            status: string;
+        };
+        VerificationResultDto: {
+            status: string;
+            summary: string;
+            errorCode?: string | null;
+            /** Format: date-time */
+            verifiedAtUtc: string;
+            checks: components["schemas"]["VerificationCheckDto"][];
         };
         WorkOrderDto: {
             /** Format: int32 */
-            id?: number;
-            code?: string | null;
+            id: number;
+            code: string;
             /** Format: int32 */
-            productId?: number;
-            productName?: string | null;
+            productId: number;
+            productName: string;
             /** Format: int32 */
-            productionLineId?: number;
-            productionLineName?: string | null;
+            productionLineId: number;
+            productionLineName: string;
             /** Format: int32 */
-            plannedQuantity?: number;
+            plannedQuantity: number;
             /** Format: int32 */
-            completedQuantity?: number;
+            completedQuantity: number;
             /** Format: int32 */
-            qualifiedQuantity?: number;
-            status?: components["schemas"]["WorkOrderStatus"];
+            qualifiedQuantity: number;
+            status: components["schemas"]["WorkOrderStatus"];
             /** Format: date-time */
-            plannedStartTime?: string;
+            plannedStartTime: string;
             /** Format: date-time */
-            plannedEndTime?: string;
+            plannedEndTime: string;
             /** Format: date-time */
             actualStartTime?: string | null;
             /** Format: date-time */
             actualEndTime?: string | null;
             /** Format: double */
-            progress?: number;
+            progress: number;
         };
         /**
          * Format: int32
