@@ -6,8 +6,10 @@ namespace MesCopilot.Domain.Entities.Production;
 /// <summary>
 /// 生产工单。
 /// </summary>
-public class WorkOrder
+public class WorkOrder : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

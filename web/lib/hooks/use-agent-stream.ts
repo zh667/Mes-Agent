@@ -3,10 +3,16 @@
 import { useCallback, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 
+import { getActiveTenantId } from "@/lib/tenant";
+import type { components } from "@/shared/api/generated/schema";
+
+export type VerificationResultDto = components["schemas"]["VerificationResultDto"];
+
 export type AgentStreamEventType =
   | "thinking"
   | "token"
   | "tool_result"
+  | "verification"
   | "done"
   | "error";
 
@@ -34,7 +40,9 @@ export function useAgentStream(options: UseAgentStreamOptions = {}) {
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const optionsRef = useRef(options);
+  const sessionRef = useRef(session);
   optionsRef.current = options;
+  sessionRef.current = session;
 
   const stopStreaming = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -44,8 +52,15 @@ export function useAgentStream(options: UseAgentStreamOptions = {}) {
 
   const streamChat = useCallback(
     async (request: AgentStreamRequest) => {
-      if (!session?.accessToken) {
+      const currentSession = sessionRef.current;
+      if (!currentSession?.accessToken) {
         optionsRef.current.onError?.(new Error("Not authenticated"));
+        return;
+      }
+
+      const tenantId = getActiveTenantId(currentSession.user?.tenants);
+      if (!tenantId) {
+        optionsRef.current.onError?.(new Error("No active tenant selected"));
         return;
       }
 
@@ -58,7 +73,8 @@ export function useAgentStream(options: UseAgentStreamOptions = {}) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session.accessToken}`,
+            Authorization: `Bearer ${currentSession.accessToken}`,
+            "X-Tenant-Id": tenantId,
           },
           body: JSON.stringify({
             conversationId: request.conversationId,
@@ -92,7 +108,7 @@ export function useAgentStream(options: UseAgentStreamOptions = {}) {
         setIsStreaming(false);
       }
     },
-    [session?.accessToken],
+    [],
   );
 
   return {

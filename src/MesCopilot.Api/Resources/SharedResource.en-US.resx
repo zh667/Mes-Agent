@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ValidationTitle" xml:space="preserve"><value>Validation failed</value></data>
+  <data name="MessageRequired" xml:space="preserve"><value>Message is required.</value></data>
+  <data name="NotFoundTitle" xml:space="preserve"><value>Resource not found</value></data>
+  <data name="ConflictTitle" xml:space="preserve"><value>Request conflict</value></data>
+  <data name="ForbiddenTitle" xml:space="preserve"><value>Access denied</value></data>
+  <data name="AuthenticationTitle" xml:space="preserve"><value>Authentication failed</value></data>
+  <data name="SearchQueryRequired" xml:space="preserve"><value>Search query is required.</value></data>
+  <data name="AgentProcessingFailed" xml:space="preserve"><value>Agent processing failed.</value></data>
+  <data name="RegistrationDisabled" xml:space="preserve"><value>User registration is disabled.</value></data>
+  <data name="EmailAlreadyRegistered" xml:space="preserve"><value>Email is already registered.</value></data>
+  <data name="RegistrationFailed" xml:space="preserve"><value>User registration could not be completed.</value></data>
+  <data name="InvalidCredentials" xml:space="preserve"><value>Invalid email or password.</value></data>
+  <data name="InvalidToken" xml:space="preserve"><value>The access token is invalid.</value></data>
+  <data name="RefreshTokenInvalidOrExpired" xml:space="preserve"><value>The refresh token is invalid or expired.</value></data>
+</root>

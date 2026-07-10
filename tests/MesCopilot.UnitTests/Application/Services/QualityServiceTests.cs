@@ -58,10 +58,6 @@ public class QualityServiceTests
 
     private static MesDbContext CreateContext()
     {
-        var options = new DbContextOptionsBuilder<MesDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new MesDbContext(options);
+        return Infrastructure.Tenancy.TenantTestDbContextFactory.Create();
     }
 }

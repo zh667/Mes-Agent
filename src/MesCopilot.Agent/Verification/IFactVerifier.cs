@@ -4,5 +4,8 @@ namespace MesCopilot.Agent.Verification;
 
 public interface IFactVerifier
 {
-    VerificationResult Verify(FunctionCallResult result);
+    Task<VerificationResult> VerifyAsync(
+        FunctionCallResult result,
+        VerificationContext context,
+        CancellationToken cancellationToken = default);
 }

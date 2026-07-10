@@ -5,16 +5,18 @@ using MesCopilot.Agent.Plugins.KnowledgeAgentPlugin;
 using MesCopilot.Agent.Models;
 using MesCopilot.Application.Dtos;
 using MesCopilot.Application.Services;
+using MesCopilot.Infrastructure.Tenancy;
 
 namespace MesCopilot.Agent.Plugins.KnowledgeAgentPlugin.Tools;
 
 public class SearchDocumentsTool
 {
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
     private readonly IKnowledgeService _knowledgeService;
     private readonly IRagAnswerGenerator _answerGenerator;
     private readonly IAgentResponseCache? _responseCache;
+    private readonly ITenantContext? _tenantContext;
 
     public SearchDocumentsTool(IKnowledgeService knowledgeService)
         : this(knowledgeService, new ContextualRagAnswerGenerator())
@@ -31,11 +33,13 @@ public class SearchDocumentsTool
     public SearchDocumentsTool(
         IKnowledgeService knowledgeService,
         IRagAnswerGenerator answerGenerator,
-        IAgentResponseCache? responseCache)
+        IAgentResponseCache? responseCache,
+        ITenantContext? tenantContext = null)
     {
         _knowledgeService = knowledgeService;
         _answerGenerator = answerGenerator;
         _responseCache = responseCache;
+        _tenantContext = tenantContext;
     }
 
     public string Name => "SearchDocuments";
@@ -46,13 +50,17 @@ public class SearchDocumentsTool
         string query,
         bool debugMode = false,
         int topK = 5,
-        double similarityThreshold = 0.7)
+        double similarityThreshold = 0.7,
+        CancellationToken cancellationToken = default)
     {
         string normalizedQuery = ValidateArguments(query, topK, similarityThreshold);
         string cacheKey = BuildCacheKey(normalizedQuery, topK, similarityThreshold);
         Stopwatch stopwatch = Stopwatch.StartNew();
-        if (_responseCache is not null &&
-            _responseCache.TryGet(cacheKey, out FunctionCallResult cachedResult))
+        string tenantId = _tenantContext?.TenantId ?? "default";
+        FunctionCallResult? cachedResult = _responseCache is null
+            ? null
+            : await _responseCache.GetAsync(tenantId, "knowledge", cacheKey, cancellationToken);
+        if (cachedResult is not null)
         {
             stopwatch.Stop();
             return new FunctionCallResult
@@ -97,7 +105,16 @@ public class SearchDocumentsTool
             Debug = CreateDebug(debugMode, stopwatch)
         };
 
-        _responseCache?.Set(cacheKey, result, CacheDuration);
+        if (_responseCache is not null)
+        {
+            await _responseCache.SetAsync(
+                tenantId,
+                "knowledge",
+                cacheKey,
+                result,
+                CacheDuration,
+                cancellationToken);
+        }
         return result;
     }
 

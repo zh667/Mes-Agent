@@ -22,8 +22,6 @@ chat history.
 
 ## Agent And RAG Follow-ups
 
-- `MesPromptBuilder` should distinguish between an unknown mode and a missing
-  template file in diagnostics.
 - `FactVerifier` may over-detect bare numbers such as version strings. Tighten
   claim extraction before using it on mixed technical prose.
 - `VerifiedRagAnswerGenerator` naming suggests full fact verification, while
@@ -83,3 +81,10 @@ chat history.
 - Add frontend streaming hook tests for abort behavior and server-side error
   events.
 - Add SSE integration coverage for cancellation and error event paths.
+
+## Resolved By Phase 3
+
+- `MesPromptBuilder` now validates the mode separately and raises
+  `FileNotFoundException` with locale/mode context when a known localized
+  template is missing. Covered by `LocalizedPromptBuilderTests`; verified on
+  2026-07-10 with the full `255`-test unit run before the final coverage pass.

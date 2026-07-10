@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 type PageMetric = {
@@ -24,6 +25,7 @@ export function OperationsPageShell({
   metrics,
   children,
 }: OperationsPageShellProps) {
+  const t = useTranslations("common");
   return (
     <main className="min-h-dvh bg-background">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
@@ -31,7 +33,7 @@ export function OperationsPageShell({
           href="/"
           className="w-fit text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
-          MES Copilot
+          {t("brand")}
         </Link>
         <header className="flex flex-col gap-4 border-b border-border pb-4 lg:flex-row lg:items-end lg:justify-between">
           <div>

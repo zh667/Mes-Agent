@@ -13,7 +13,17 @@ public interface IConversationService
 
     Task<IReadOnlyList<ConversationMessageDto>> GetContextWindowAsync(Guid conversationId, int maxMessages = 10);
 
-    Task AddMessageAsync(Guid conversationId, MessageRole role, string content, string? toolResults = null);
+    Task<Guid> AddMessageAsync(
+        Guid conversationId,
+        MessageRole role,
+        string content,
+        string? toolResults = null,
+        string? verificationJson = null,
+        int? verificationSchemaVersion = null);
+
+    Task<ConversationMessageVerificationSourceDto?> GetMessageVerificationSourceAsync(Guid messageId, string userId);
+
+    Task SaveMessageVerificationAsync(Guid messageId, string verificationJson, int schemaVersion);
 
     Task DeleteConversationAsync(Guid conversationId, string userId);
 

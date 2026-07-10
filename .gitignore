@@ -5,6 +5,8 @@ references/
 bin/
 obj/
 TestResults/
+BenchmarkDotNet.Artifacts/
+artifacts/
 *.user
 *.suo
 .vs/
@@ -16,6 +18,8 @@ build/
 coverage/
 .vite/
 .next/
+playwright-report/
+test-results/
 
 ## Local configuration and secrets
 .env

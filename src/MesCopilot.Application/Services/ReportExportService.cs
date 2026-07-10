@@ -1,6 +1,8 @@
 using MesCopilot.Application.Dtos;
 using MesCopilot.Application.Dtos.Reports;
+using MesCopilot.Application.Dtos.Auditing;
 using MesCopilot.Domain.Enums;
+using MesCopilot.Infrastructure.Data.ReadRouting;
 
 namespace MesCopilot.Application.Services;
 
@@ -12,19 +14,32 @@ public class ReportExportService : IReportExportService
     private readonly IWorkOrderService _workOrderService;
     private readonly IQualityService _qualityService;
     private readonly IEquipmentService _equipmentService;
+    private readonly IReadDbContextFactory? _readFactory;
 
     public ReportExportService(
         IWorkOrderService workOrderService,
         IQualityService qualityService,
-        IEquipmentService equipmentService)
+        IEquipmentService equipmentService,
+        IReadDbContextFactory? readFactory = null,
+        ReadRoutingOptions? options = null)
     {
         _workOrderService = workOrderService;
         _qualityService = qualityService;
         _equipmentService = equipmentService;
+        _readFactory = options?.Enabled == true ? readFactory : null;
     }
 
     public async Task<byte[]> ExportProductionReportAsync(DateTime date, int? lineId, ReportFormat format)
     {
+        if (_readFactory is not null)
+        {
+            return await _readFactory.ExecuteAsync(
+                (context, _) => new ReportExportService(
+                    new WorkOrderService(context),
+                    new QualityService(context),
+                    new EquipmentService(context)).ExportProductionReportAsync(date, lineId, format));
+        }
+
         DateTime day = date.Date;
         DateTime nextDay = day.AddDays(1);
         List<WorkOrderDto> orders = (await _workOrderService.GetAllAsync())
@@ -66,6 +81,15 @@ public class ReportExportService : IReportExportService
 
     public async Task<byte[]> ExportQualityReportAsync(DateTime from, DateTime to, ReportFormat format)
     {
+        if (_readFactory is not null)
+        {
+            return await _readFactory.ExecuteAsync(
+                (context, _) => new ReportExportService(
+                    new WorkOrderService(context),
+                    new QualityService(context),
+                    new EquipmentService(context)).ExportQualityReportAsync(from, to, format));
+        }
+
         ValidateDateRange(from, to);
         DateTime fromDate = from.Date;
         DateTime toExclusive = to.Date.AddDays(1);
@@ -106,6 +130,15 @@ public class ReportExportService : IReportExportService
 
     public async Task<byte[]> ExportOeeReportAsync(IReadOnlyList<int> equipmentIds, DateTime from, DateTime to, ReportFormat format)
     {
+        if (_readFactory is not null)
+        {
+            return await _readFactory.ExecuteAsync(
+                (context, _) => new ReportExportService(
+                    new WorkOrderService(context),
+                    new QualityService(context),
+                    new EquipmentService(context)).ExportOeeReportAsync(equipmentIds, from, to, format));
+        }
+
         ValidateDateRange(from, to);
         DateTime fromDate = from.Date;
         DateTime toDate = to.Date;
@@ -154,6 +187,11 @@ public class ReportExportService : IReportExportService
         return format == ReportFormat.Excel
             ? ExcelReportGenerator.GenerateOeeReport(report)
             : PdfReportGenerator.GenerateOeeReport(report);
+    }
+
+    public Task<byte[]> ExportAuditReportAsync(IReadOnlyList<AuditReportRowDto> rows, ReportFormat format)
+    {
+        return Task.FromResult(AuditReportGenerator.Generate(rows, format));
     }
 
     private static bool IsDelayed(WorkOrderDto order)

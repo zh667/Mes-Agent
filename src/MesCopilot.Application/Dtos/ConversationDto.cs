@@ -15,7 +15,15 @@ public record ConversationMessageDto(
     MessageRole Role,
     string Content,
     object? ToolResults,
+    object? Verification,
     DateTime CreatedAt);
+
+public sealed record ConversationMessageVerificationSourceDto(
+    Guid MessageId,
+    AgentMode Mode,
+    string Content,
+    string? ToolResults,
+    string? VerificationJson);
 
 public record ConversationDetailDto(
     Guid Id,

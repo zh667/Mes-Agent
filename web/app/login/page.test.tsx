@@ -16,6 +16,25 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+vi.mock("next-intl", () => ({
+  useTranslations: (namespace?: string) => (key: string) => {
+    const messages: Record<string, Record<string, string>> = {
+      common: { brand: "MES Copilot" },
+      auth: {
+        badge: "Manufacturing operations workspace",
+        description: "Secure access",
+        signIn: "Sign in",
+        signingIn: "Signing in...",
+        email: "Email",
+        password: "Password",
+        hint: "Use your MES Copilot operator credentials.",
+        invalid: "Invalid email or password",
+      },
+    };
+    return messages[namespace ?? ""]?.[key] ?? key;
+  },
+}));
+
 describe("LoginPage", () => {
   beforeEach(() => {
     signInMock.mockReset();

@@ -70,11 +70,7 @@ public class PgVectorStoreTests
 
     private static MesDbContext CreateContext()
     {
-        DbContextOptions<MesDbContext> options = new DbContextOptionsBuilder<MesDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new MesDbContext(options);
+        return Tenancy.TenantTestDbContextFactory.Create();
     }
 
     private static async Task SeedDocumentAsync(MesDbContext context)

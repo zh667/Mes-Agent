@@ -5,8 +5,10 @@ namespace MesCopilot.Domain.Entities.Knowledge;
 /// <summary>
 /// 知识库文档。
 /// </summary>
-public class Document
+public class Document : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

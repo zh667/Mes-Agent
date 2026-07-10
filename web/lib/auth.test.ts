@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Session } from "next-auth";
 
-import { authOptions } from "./auth";
+import { authOptions, getServerApiBaseUrl } from "./auth";
 
 const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const originalInternalApiUrl = process.env.API_INTERNAL_URL;
 const jwtCallback = authOptions.callbacks?.jwt;
 const sessionCallback = authOptions.callbacks?.session;
 type JwtCallbackParams = Parameters<NonNullable<typeof jwtCallback>>[0];
@@ -38,6 +39,21 @@ afterEach(() => {
   } else {
     process.env.NEXT_PUBLIC_API_URL = originalApiUrl;
   }
+
+  if (originalInternalApiUrl === undefined) {
+    delete process.env.API_INTERNAL_URL;
+  } else {
+    process.env.API_INTERNAL_URL = originalInternalApiUrl;
+  }
+});
+
+describe("getServerApiBaseUrl", () => {
+  it("prefers the container-internal API URL for server-side authentication", () => {
+    process.env.NEXT_PUBLIC_API_URL = "http://localhost:5000/api";
+    process.env.API_INTERNAL_URL = "http://api:8080/api";
+
+    expect(getServerApiBaseUrl()).toBe("http://api:8080/api");
+  });
 });
 
 describe("authOptions jwt callback", () => {
@@ -50,7 +66,8 @@ describe("authOptions jwt callback", () => {
       user: {
         id: "user-1",
         email: "operator@example.com",
-        role: "Operator",
+        isPlatformAdmin: false,
+        tenants: [],
         accessToken: "access-token",
         refreshToken: "refresh-token",
       },

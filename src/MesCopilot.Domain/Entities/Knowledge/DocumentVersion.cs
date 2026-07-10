@@ -1,7 +1,9 @@
 namespace MesCopilot.Domain.Entities.Knowledge;
 
-public class DocumentVersion
+public class DocumentVersion : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     public int DocumentId { get; set; }

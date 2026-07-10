@@ -2,6 +2,7 @@ using MesCopilot.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +42,8 @@ public class AuthApiFactory : WebApplicationFactory<Program>
                 ["Jwt:Issuer"] = "MesCopilot",
                 ["Jwt:Audience"] = "MesCopilotClient",
                 ["Jwt:AccessTokenExpirationMinutes"] = _accessTokenExpirationMinutes,
-                ["Jwt:RefreshTokenExpirationDays"] = "7"
+                ["Jwt:RefreshTokenExpirationDays"] = "7",
+                ["Auth:AllowRegistration"] = "true"
             });
         });
         builder.ConfigureLogging(logging => logging.ClearProviders());
@@ -50,7 +52,8 @@ public class AuthApiFactory : WebApplicationFactory<Program>
         {
             services.RemoveAll<DbContextOptions<MesDbContext>>();
             services.AddDbContext<MesDbContext>(options =>
-                options.UseInMemoryDatabase("mes-copilot-auth-api", _databaseRoot));
+                options.UseInMemoryDatabase("mes-copilot-auth-api", _databaseRoot)
+                    .ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)));
 
             using ServiceProvider provider = services.BuildServiceProvider();
             using IServiceScope scope = provider.CreateScope();

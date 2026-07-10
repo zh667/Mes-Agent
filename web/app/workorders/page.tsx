@@ -1,4 +1,5 @@
 import { ClipboardCheck, ClipboardList, Filter, Play } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   OperationsPageShell,
@@ -6,67 +7,40 @@ import {
   StatusPill,
 } from "@/components/operations/operations-page-shell";
 
-const workOrders = [
-  {
-    code: "WO-20260709-014",
-    product: "Valve Assembly",
-    line: "Line 1",
-    status: "In production",
-    progress: "64%",
-    planned: "1,200",
-    completed: "768",
-    risk: "Material shortage",
-  },
-  {
-    code: "WO-20260709-018",
-    product: "Pump Housing",
-    line: "Line 2",
-    status: "Paused",
-    progress: "72%",
-    planned: "800",
-    completed: "576",
-    risk: "Downtime review",
-  },
-  {
-    code: "WO-20260709-021",
-    product: "Sensor Bracket",
-    line: "Line 3",
-    status: "Ready",
-    progress: "0%",
-    planned: "2,400",
-    completed: "0",
-    risk: "None",
-  },
-];
-
 export default function WorkOrdersPage() {
+  const t = useTranslations("workorders");
+  const workOrders = [
+    { code: "WO-20260709-014", product: t("preview.valveAssembly"), line: t("preview.line1"), status: t("preview.inProduction"), tone: "neutral" as const, progress: "64%", risk: t("preview.materialShortage") },
+    { code: "WO-20260709-018", product: t("preview.pumpHousing"), line: t("preview.line2"), status: t("preview.paused"), tone: "danger" as const, progress: "72%", risk: t("preview.downtimeReview") },
+    { code: "WO-20260709-021", product: t("preview.sensorBracket"), line: t("preview.line3"), status: t("preview.ready"), tone: "neutral" as const, progress: "0%", risk: t("preview.noRisk") },
+  ];
   return (
     <OperationsPageShell
-      title="Work Orders"
-      eyebrow="Production Control"
-      description="Dispatch, report, complete, and review shop-floor progress with a dense operator-ready work order board."
+      title={t("title")}
+      eyebrow={t("eyebrow")}
+      description={t("description")}
       icon={ClipboardList}
       metrics={[
-        { label: "Open orders", value: "24" },
-        { label: "Delayed", value: "7" },
-        { label: "Output today", value: "8,420" },
+        { label: t("metrics.open"), value: "24" },
+        { label: t("metrics.delayed"), value: "7" },
+        { label: t("metrics.output"), value: "8,420" },
       ]}
     >
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <OperationsPanel
-          title="Dispatch Board"
-          description="Filter active orders, inspect progress, and take the next shop-floor action."
+          title={t("dispatchBoard")}
+          description={t("dispatchDescription")}
         >
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <label className="relative block flex-1">
-              <span className="sr-only">Filter work orders</span>
+              <span className="sr-only">{t("filter")}</span>
               <Filter
                 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                 aria-hidden="true"
               />
               <input
-                aria-label="Filter work orders"
-                defaultValue="Line 1 / delayed / today"
+                aria-label={t("filter")}
+                defaultValue={t("filterExample")}
                 className="min-h-11 w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none transition-[border-color,box-shadow] duration-150 focus:border-ring focus:ring-2 focus:ring-ring/20"
               />
             </label>
@@ -75,19 +49,19 @@ export default function WorkOrdersPage() {
                 type="button"
                 className="min-h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-[background-color,scale] duration-150 hover:bg-primary/90 active:scale-[0.96]"
               >
-                Start
+                {t("actions.start")}
               </button>
               <button
                 type="button"
                 className="min-h-11 rounded-md bg-muted px-4 text-sm font-medium text-foreground transition-[background-color,scale] duration-150 hover:bg-border active:scale-[0.96]"
               >
-                Report
+                {t("actions.report")}
               </button>
               <button
                 type="button"
                 className="min-h-11 rounded-md bg-muted px-4 text-sm font-medium text-foreground transition-[background-color,scale] duration-150 hover:bg-border active:scale-[0.96]"
               >
-                Complete
+                {t("actions.complete")}
               </button>
             </div>
           </div>
@@ -96,19 +70,19 @@ export default function WorkOrdersPage() {
               <thead className="bg-muted text-xs text-muted-foreground">
                 <tr>
                   <th scope="col" className="px-3 py-2 font-medium">
-                    Work order
+                    {t("columns.workOrder")}
                   </th>
                   <th scope="col" className="px-3 py-2 font-medium">
-                    Line
+                    {t("columns.line")}
                   </th>
                   <th scope="col" className="px-3 py-2 font-medium">
-                    Status
+                    {t("columns.status")}
                   </th>
                   <th scope="col" className="px-3 py-2 font-medium">
-                    Progress
+                    {t("columns.progress")}
                   </th>
                   <th scope="col" className="px-3 py-2 font-medium">
-                    Risk
+                    {t("columns.risk")}
                   </th>
                 </tr>
               </thead>
@@ -128,7 +102,7 @@ export default function WorkOrdersPage() {
                     </td>
                     <td className="px-3 py-3">
                       <StatusPill
-                        tone={order.status === "Paused" ? "danger" : "neutral"}
+                        tone={order.tone}
                       >
                         {order.status}
                       </StatusPill>
@@ -147,29 +121,29 @@ export default function WorkOrdersPage() {
         </OperationsPanel>
 
         <OperationsPanel
-          title="Operation Detail"
-          description="Current operation, quantity, and next control action."
+          title={t("operationDetail")}
+          description={t("operationDescription")}
         >
           <div className="space-y-3 text-sm">
             <div className="rounded-md bg-muted p-3">
               <div className="flex items-center gap-2 font-medium text-foreground">
                 <Play className="h-4 w-4 text-primary" aria-hidden="true" />
-                Assembly step running
+                {t("assemblyRunning")}
               </div>
               <p className="mt-2 text-muted-foreground">
-                Operator Chen is reporting output against operation OP-20.
+                {t("operatorReporting")}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Detail label="Planned" value="1,200" />
-              <Detail label="Completed" value="768" />
-              <Detail label="Good qty" value="742" />
-              <Detail label="Scrap" value="26" />
+              <Detail label={t("planned")} value="1,200" />
+              <Detail label={t("completed")} value="768" />
+              <Detail label={t("goodQuantity")} value="742" />
+              <Detail label={t("scrap")} value="26" />
             </div>
             <div className="flex items-center gap-2 rounded-md bg-background p-3 shadow-[0_0_0_1px_rgba(0,0,0,0.06)]">
               <ClipboardCheck className="h-4 w-4 text-primary" aria-hidden="true" />
               <span className="text-muted-foreground">
-                Completion requires quality confirmation.
+                {t("qualityConfirmation")}
               </span>
             </div>
           </div>

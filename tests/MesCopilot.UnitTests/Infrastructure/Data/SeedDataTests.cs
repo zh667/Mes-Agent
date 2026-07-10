@@ -33,10 +33,6 @@ public class SeedDataTests
 
     private static MesDbContext CreateContext()
     {
-        var options = new DbContextOptionsBuilder<MesDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new MesDbContext(options);
+        return Tenancy.TenantTestDbContextFactory.Create();
     }
 }

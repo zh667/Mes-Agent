@@ -9,8 +9,8 @@ type AuthResponse = components["schemas"]["AuthResponse"];
 const accessTokenLifetimeMs = 15 * 60 * 1000;
 const refreshSkewMs = 60 * 1000;
 
-function getApiBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+export function getServerApiBaseUrl() {
+  return process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 }
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
@@ -20,7 +20,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 
   let response: Response;
   try {
-    response = await fetch(`${getApiBaseUrl()}/auth/refresh`, {
+    response = await fetch(`${getServerApiBaseUrl()}/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,6 +56,8 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     ...token,
     accessToken: auth.accessToken,
     refreshToken: auth.refreshToken,
+    isPlatformAdmin: auth.user?.isPlatformAdmin ?? token.isPlatformAdmin,
+    tenants: auth.user?.tenants ?? token.tenants,
     accessTokenExpires: Date.now() + accessTokenLifetimeMs,
     error: undefined,
   };
@@ -80,7 +82,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
+        const response = await fetch(`${getServerApiBaseUrl()}/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -100,14 +102,14 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const role = auth.user.role ?? "Operator";
         const refreshToken = auth.refreshToken ?? "";
 
         return {
           id: auth.user.id,
           email: auth.user.email,
           name: auth.user.displayName ?? auth.user.email,
-          role,
+          isPlatformAdmin: auth.user.isPlatformAdmin ?? false,
+          tenants: auth.user.tenants ?? [],
           accessToken: auth.accessToken,
           refreshToken,
         };
@@ -117,7 +119,8 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
+        token.isPlatformAdmin = user.isPlatformAdmin;
+        token.tenants = user.tenants;
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.accessTokenExpires = Date.now() + accessTokenLifetimeMs;
@@ -135,9 +138,8 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
-        if (token.role) {
-          session.user.role = token.role;
-        }
+        session.user.isPlatformAdmin = token.isPlatformAdmin;
+        session.user.tenants = token.tenants;
       }
 
       if (token.accessToken) {

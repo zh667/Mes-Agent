@@ -23,6 +23,178 @@ namespace MesCopilot.Infrastructure.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Auditing.AgentAuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Discrepancies")
+                        .HasColumnType("text");
+
+                    b.Property<long>("DurationMilliseconds")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool?>("IsVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Mode")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("QueryDigest")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ToolName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Timestamp");
+
+                    b.HasIndex("TenantId", "UserId", "Timestamp");
+
+                    b.ToTable("AgentAuditLogs", (string)null);
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Auditing.AuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<long>("DurationMilliseconds")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("IpHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("QueryKeys")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("RequestBody")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RouteTemplate")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Timestamp");
+
+                    b.HasIndex("TenantId", "UserId", "Timestamp");
+
+                    b.ToTable("AuditLogs", (string)null);
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Auditing.DataChangeLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ChangeType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NewValues")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Timestamp");
+
+                    b.HasIndex("TenantId", "EntityType", "EntityId");
+
+                    b.ToTable("DataChangeLogs", (string)null);
+                });
+
             modelBuilder.Entity("MesCopilot.Domain.Entities.Conversations.Conversation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -36,6 +208,11 @@ namespace MesCopilot.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -52,9 +229,9 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UpdatedAt");
+                    b.HasIndex("TenantId", "UpdatedAt");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("TenantId", "UserId");
 
                     b.ToTable("Conversations", (string)null);
                 });
@@ -80,14 +257,101 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<string>("ToolResults")
                         .HasColumnType("jsonb");
 
+                    b.Property<string>("VerificationJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int?>("VerificationSchemaVersion")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId", "CreatedAt");
+                    b.HasAlternateKey("TenantId", "Id");
 
-                    b.ToTable("ConversationMessages", (string)null);
+                    b.HasIndex("TenantId", "ConversationId", "CreatedAt");
+
+                    b.ToTable("ConversationMessages", t =>
+                        {
+                            t.HasCheckConstraint("CK_ConversationMessages_VerificationState", "(\"VerificationJson\" IS NULL AND \"VerificationSchemaVersion\" IS NULL) OR (\"VerificationJson\" IS NOT NULL AND \"VerificationSchemaVersion\" = 1)");
+                        });
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Equipment.DeviceConnection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EncryptedConfiguration")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("EquipmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("HasCredentials")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Host")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastConnectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastErrorCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Port")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Protocol")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "EquipmentId", "Protocol");
+
+                    b.ToTable("DeviceConnections", (string)null);
                 });
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Equipment.DowntimeRecord", b =>
@@ -123,9 +387,16 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipmentId");
+                    b.HasAlternateKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "EquipmentId");
 
                     b.ToTable("DowntimeRecords", (string)null);
                 });
@@ -168,12 +439,22 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("RatedCapacity")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<int?>("WorkstationId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.HasIndex("ProductionLineId");
+                    b.HasIndex("TenantId", "ProductionLineId");
+
+                    b.HasIndex("TenantId", "WorkstationId");
 
                     b.ToTable("Equipment", (string)null);
                 });
@@ -217,9 +498,16 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<DateTime?>("ResolvedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipmentId", "OccurredAt");
+                    b.HasAlternateKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "EquipmentId", "OccurredAt");
 
                     b.ToTable("EquipmentAlarms", (string)null);
                 });
@@ -252,9 +540,16 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipmentId", "StartTime");
+                    b.HasAlternateKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "EquipmentId", "StartTime");
 
                     b.ToTable("EquipmentStatuses", (string)null);
                 });
@@ -284,6 +579,9 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPlatformAdmin")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("LastLoginAt")
@@ -319,11 +617,6 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
@@ -347,6 +640,75 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Identity.Tenant", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Tenants", (string)null);
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Identity.UserTenantMembership", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId", "TenantId")
+                        .IsUnique();
+
+                    b.ToTable("UserTenantMemberships", (string)null);
                 });
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Knowledge.Document", b =>
@@ -378,6 +740,11 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -398,7 +765,7 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FileName");
+                    b.HasIndex("TenantId", "FileName");
 
                     b.ToTable("Documents", (string)null);
                 });
@@ -431,6 +798,11 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("Sequence")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<int>("TokenCount")
                         .HasColumnType("integer");
 
@@ -439,7 +811,9 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DocumentId", "Sequence")
+                    b.HasAlternateKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "DocumentId", "Sequence")
                         .IsUnique();
 
                     b.ToTable("DocumentChunks", (string)null);
@@ -477,6 +851,11 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -490,9 +869,11 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DocumentId", "IsActive");
+                    b.HasAlternateKey("TenantId", "Id");
 
-                    b.HasIndex("DocumentId", "VersionNumber")
+                    b.HasIndex("TenantId", "DocumentId", "IsActive");
+
+                    b.HasIndex("TenantId", "DocumentId", "VersionNumber")
                         .IsUnique();
 
                     b.ToTable("DocumentVersions", (string)null);
@@ -525,16 +906,21 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<string>("Version")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("TenantId", "ProductId");
 
                     b.ToTable("ProcessRoutes", (string)null);
                 });
@@ -570,14 +956,20 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<int?>("WorkstationId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProcessRouteId");
+                    b.HasIndex("TenantId", "WorkstationId");
 
-                    b.HasIndex("WorkstationId");
+                    b.HasIndex("TenantId", "ProcessRouteId", "Sequence")
+                        .IsUnique();
 
                     b.ToTable("ProcessSteps", (string)null);
                 });
@@ -609,12 +1001,17 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
                     b.ToTable("ProductionLines", (string)null);
@@ -658,6 +1055,11 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
@@ -666,13 +1068,17 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BatchNumber");
+                    b.HasAlternateKey("TenantId", "Id");
 
-                    b.HasIndex("ProcessStepId");
+                    b.HasIndex("TenantId", "BatchNumber");
 
-                    b.HasIndex("Timestamp");
+                    b.HasIndex("TenantId", "EquipmentId");
 
-                    b.HasIndex("WorkOrderId");
+                    b.HasIndex("TenantId", "ProcessStepId");
+
+                    b.HasIndex("TenantId", "Timestamp");
+
+                    b.HasIndex("TenantId", "WorkOrderId");
 
                     b.ToTable("ProductionReports", (string)null);
                 });
@@ -725,25 +1131,30 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.HasIndex("CreatedAt");
+                    b.HasIndex("TenantId", "CreatedAt");
 
-                    b.HasIndex("PlannedEndTime");
+                    b.HasIndex("TenantId", "PlannedEndTime");
 
-                    b.HasIndex("PlannedStartTime");
+                    b.HasIndex("TenantId", "PlannedStartTime");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("TenantId", "ProductId");
 
-                    b.HasIndex("ProductionLineId");
+                    b.HasIndex("TenantId", "ProductionLineId");
 
-                    b.HasIndex("Status");
+                    b.HasIndex("TenantId", "Status");
 
                     b.ToTable("WorkOrders", (string)null);
                 });
@@ -765,6 +1176,9 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("CompletedQuantity")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("EquipmentId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("PlannedEndTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -777,14 +1191,30 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("Sequence")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.Property<int>("WorkOrderId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProcessStepId");
+                    b.HasAlternateKey("TenantId", "Id");
 
-                    b.HasIndex("WorkOrderId");
+                    b.HasIndex("TenantId", "ProcessStepId");
+
+                    b.HasIndex("TenantId", "WorkOrderId", "ProcessStepId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "EquipmentId", "PlannedStartTime", "PlannedEndTime");
 
                     b.ToTable("WorkOrderOperations", (string)null);
                 });
@@ -816,12 +1246,17 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("ProductionLineId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.HasIndex("ProductionLineId");
+                    b.HasIndex("TenantId", "ProductionLineId");
 
                     b.ToTable("Workstations", (string)null);
                 });
@@ -848,6 +1283,11 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -858,10 +1298,10 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("TenantId", "ProductId");
 
                     b.ToTable("Boms", (string)null);
                 });
@@ -877,7 +1317,10 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("BomId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MaterialId")
+                    b.Property<int?>("ChildBomId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaterialId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Quantity")
@@ -887,6 +1330,11 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("Sequence")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -894,11 +1342,55 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BomId");
+                    b.HasAlternateKey("TenantId", "Id");
 
-                    b.HasIndex("MaterialId");
+                    b.HasIndex("TenantId", "BomId");
 
-                    b.ToTable("BomItems", (string)null);
+                    b.HasIndex("TenantId", "ChildBomId");
+
+                    b.HasIndex("TenantId", "MaterialId");
+
+                    b.ToTable("BomItems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BomItems_MaterialOrChildBom", "(\"MaterialId\" IS NOT NULL AND \"ChildBomId\" IS NULL) OR (\"MaterialId\" IS NULL AND \"ChildBomId\" IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Products.InventoryBalance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("QuantityOnHand")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<decimal>("QuantityReserved")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "MaterialId")
+                        .IsUnique();
+
+                    b.ToTable("InventoryBalances", (string)null);
                 });
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Products.Material", b =>
@@ -930,6 +1422,11 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -940,7 +1437,7 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
                     b.ToTable("Materials", (string)null);
@@ -971,6 +1468,11 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -981,7 +1483,7 @@ namespace MesCopilot.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
                     b.ToTable("Products", (string)null);
@@ -1014,11 +1516,18 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("DefectTypeId");
+                    b.HasAlternateKey("TenantId", "Id");
 
-                    b.HasIndex("QualityInspectionId");
+                    b.HasIndex("TenantId", "DefectTypeId");
+
+                    b.HasIndex("TenantId", "QualityInspectionId");
 
                     b.ToTable("DefectRecords", (string)null);
                 });
@@ -1047,9 +1556,14 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
                     b.ToTable("DefectTypes", (string)null);
@@ -1109,21 +1623,26 @@ namespace MesCopilot.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)");
+
                     b.Property<int>("WorkOrderId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BatchNumber");
+                    b.HasIndex("TenantId", "BatchNumber");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.HasIndex("InspectionTime");
+                    b.HasIndex("TenantId", "InspectionTime");
 
-                    b.HasIndex("ProcessStepId");
+                    b.HasIndex("TenantId", "ProcessStepId");
 
-                    b.HasIndex("WorkOrderId");
+                    b.HasIndex("TenantId", "WorkOrderId");
 
                     b.ToTable("QualityInspections", (string)null);
                 });
@@ -1260,22 +1779,90 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Auditing.AgentAuditLog", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Auditing.AuditLog", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Auditing.DataChangeLog", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Conversations.Conversation", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MesCopilot.Domain.Entities.Conversations.ConversationMessage", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Conversations.Conversation", "Conversation")
                         .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
+                        .HasForeignKey("TenantId", "ConversationId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Conversation");
                 });
 
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Equipment.DeviceConnection", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MesCopilot.Domain.Entities.Equipment.Equipment", "Equipment")
+                        .WithMany("DeviceConnections")
+                        .HasForeignKey("TenantId", "EquipmentId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Equipment");
+                });
+
             modelBuilder.Entity("MesCopilot.Domain.Entities.Equipment.DowntimeRecord", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Equipment.Equipment", "Equipment")
                         .WithMany("DowntimeRecords")
-                        .HasForeignKey("EquipmentId")
+                        .HasForeignKey("TenantId", "EquipmentId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1284,18 +1871,41 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Equipment.Equipment", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Production.ProductionLine", "ProductionLine")
                         .WithMany()
-                        .HasForeignKey("ProductionLineId");
+                        .HasForeignKey("TenantId", "ProductionLineId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MesCopilot.Domain.Entities.Production.Workstation", "Workstation")
+                        .WithMany()
+                        .HasForeignKey("TenantId", "WorkstationId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ProductionLine");
+
+                    b.Navigation("Workstation");
                 });
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Equipment.EquipmentAlarm", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Equipment.Equipment", "Equipment")
                         .WithMany("Alarms")
-                        .HasForeignKey("EquipmentId")
+                        .HasForeignKey("TenantId", "EquipmentId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1304,20 +1914,62 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Equipment.EquipmentStatus", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Equipment.Equipment", "Equipment")
                         .WithMany("StatusHistory")
-                        .HasForeignKey("EquipmentId")
+                        .HasForeignKey("TenantId", "EquipmentId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Equipment");
                 });
 
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Identity.UserTenantMembership", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", "Tenant")
+                        .WithMany("Memberships")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.AppUser", "User")
+                        .WithMany("TenantMemberships")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Knowledge.Document", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MesCopilot.Domain.Entities.Knowledge.DocumentChunk", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Knowledge.Document", "Document")
                         .WithMany("Chunks")
-                        .HasForeignKey("DocumentId")
+                        .HasForeignKey("TenantId", "DocumentId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1326,9 +1978,16 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Knowledge.DocumentVersion", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Knowledge.Document", "Document")
                         .WithMany("Versions")
-                        .HasForeignKey("DocumentId")
+                        .HasForeignKey("TenantId", "DocumentId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1337,10 +1996,17 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Production.ProcessRoute", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Products.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("TenantId", "ProductId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -1348,32 +2014,65 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Production.ProcessStep", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Production.ProcessRoute", "ProcessRoute")
                         .WithMany("ProcessSteps")
-                        .HasForeignKey("ProcessRouteId")
+                        .HasForeignKey("TenantId", "ProcessRouteId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("MesCopilot.Domain.Entities.Production.Workstation", "Workstation")
                         .WithMany("ProcessSteps")
-                        .HasForeignKey("WorkstationId");
+                        .HasForeignKey("TenantId", "WorkstationId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ProcessRoute");
 
                     b.Navigation("Workstation");
                 });
 
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Production.ProductionLine", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MesCopilot.Domain.Entities.Production.ProductionReport", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MesCopilot.Domain.Entities.Equipment.Equipment", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "EquipmentId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Production.ProcessStep", "ProcessStep")
                         .WithMany()
-                        .HasForeignKey("ProcessStepId")
+                        .HasForeignKey("TenantId", "ProcessStepId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("MesCopilot.Domain.Entities.Production.WorkOrder", "WorkOrder")
                         .WithMany("ProductionReports")
-                        .HasForeignKey("WorkOrderId")
+                        .HasForeignKey("TenantId", "WorkOrderId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1384,15 +2083,23 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Production.WorkOrder", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Products.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("TenantId", "ProductId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("MesCopilot.Domain.Entities.Production.ProductionLine", "ProductionLine")
                         .WithMany("WorkOrders")
-                        .HasForeignKey("ProductionLineId")
+                        .HasForeignKey("TenantId", "ProductionLineId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1403,17 +2110,33 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Production.WorkOrderOperation", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MesCopilot.Domain.Entities.Equipment.Equipment", "Equipment")
+                        .WithMany()
+                        .HasForeignKey("TenantId", "EquipmentId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("MesCopilot.Domain.Entities.Production.ProcessStep", "ProcessStep")
                         .WithMany()
-                        .HasForeignKey("ProcessStepId")
+                        .HasForeignKey("TenantId", "ProcessStepId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("MesCopilot.Domain.Entities.Production.WorkOrder", "WorkOrder")
                         .WithMany("Operations")
-                        .HasForeignKey("WorkOrderId")
+                        .HasForeignKey("TenantId", "WorkOrderId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Equipment");
 
                     b.Navigation("ProcessStep");
 
@@ -1422,10 +2145,17 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Production.Workstation", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Production.ProductionLine", "ProductionLine")
                         .WithMany()
-                        .HasForeignKey("ProductionLineId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("TenantId", "ProductionLineId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ProductionLine");
@@ -1433,9 +2163,16 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Products.Bom", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Products.Product", "Product")
                         .WithMany("Boms")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("TenantId", "ProductId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1444,34 +2181,93 @@ namespace MesCopilot.Infrastructure.Migrations
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Products.BomItem", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Products.Bom", "Bom")
                         .WithMany("BomItems")
-                        .HasForeignKey("BomId")
+                        .HasForeignKey("TenantId", "BomId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("MesCopilot.Domain.Entities.Products.Bom", "ChildBom")
+                        .WithMany("ParentBomItems")
+                        .HasForeignKey("TenantId", "ChildBomId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("MesCopilot.Domain.Entities.Products.Material", "Material")
                         .WithMany("BomItems")
-                        .HasForeignKey("MaterialId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TenantId", "MaterialId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Bom");
+
+                    b.Navigation("ChildBom");
 
                     b.Navigation("Material");
                 });
 
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Products.InventoryBalance", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MesCopilot.Domain.Entities.Products.Material", "Material")
+                        .WithOne("InventoryBalance")
+                        .HasForeignKey("MesCopilot.Domain.Entities.Products.InventoryBalance", "TenantId", "MaterialId")
+                        .HasPrincipalKey("MesCopilot.Domain.Entities.Products.Material", "TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Products.Material", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Products.Product", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MesCopilot.Domain.Entities.Quality.DefectRecord", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Quality.DefectType", "DefectType")
                         .WithMany("DefectRecords")
-                        .HasForeignKey("DefectTypeId")
+                        .HasForeignKey("TenantId", "DefectTypeId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("MesCopilot.Domain.Entities.Quality.QualityInspection", "QualityInspection")
                         .WithMany("DefectRecords")
-                        .HasForeignKey("QualityInspectionId")
+                        .HasForeignKey("TenantId", "QualityInspectionId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1480,17 +2276,34 @@ namespace MesCopilot.Infrastructure.Migrations
                     b.Navigation("QualityInspection");
                 });
 
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Quality.DefectType", b =>
+                {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MesCopilot.Domain.Entities.Quality.QualityInspection", b =>
                 {
+                    b.HasOne("MesCopilot.Domain.Entities.Identity.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MesCopilot.Domain.Entities.Production.ProcessStep", "ProcessStep")
                         .WithMany()
-                        .HasForeignKey("ProcessStepId")
+                        .HasForeignKey("TenantId", "ProcessStepId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("MesCopilot.Domain.Entities.Production.WorkOrder", "WorkOrder")
                         .WithMany()
-                        .HasForeignKey("WorkOrderId")
+                        .HasForeignKey("TenantId", "WorkOrderId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1559,9 +2372,21 @@ namespace MesCopilot.Infrastructure.Migrations
                 {
                     b.Navigation("Alarms");
 
+                    b.Navigation("DeviceConnections");
+
                     b.Navigation("DowntimeRecords");
 
                     b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Identity.AppUser", b =>
+                {
+                    b.Navigation("TenantMemberships");
+                });
+
+            modelBuilder.Entity("MesCopilot.Domain.Entities.Identity.Tenant", b =>
+                {
+                    b.Navigation("Memberships");
                 });
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Knowledge.Document", b =>
@@ -1596,11 +2421,15 @@ namespace MesCopilot.Infrastructure.Migrations
             modelBuilder.Entity("MesCopilot.Domain.Entities.Products.Bom", b =>
                 {
                     b.Navigation("BomItems");
+
+                    b.Navigation("ParentBomItems");
                 });
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Products.Material", b =>
                 {
                     b.Navigation("BomItems");
+
+                    b.Navigation("InventoryBalance");
                 });
 
             modelBuilder.Entity("MesCopilot.Domain.Entities.Products.Product", b =>

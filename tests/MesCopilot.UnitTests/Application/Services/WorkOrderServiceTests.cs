@@ -147,11 +147,7 @@ public class WorkOrderServiceTests
 
     private static MesDbContext CreateInMemoryContext()
     {
-        var options = new DbContextOptionsBuilder<MesDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new MesDbContext(options);
+        return Infrastructure.Tenancy.TenantTestDbContextFactory.Create();
     }
 
     private static async Task SeedRequiredLookupsAsync(MesDbContext context)

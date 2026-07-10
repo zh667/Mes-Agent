@@ -2,12 +2,73 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using MesCopilot.Agent.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MesCopilot.Agent.Verification;
 
 public partial class FactVerifier : IFactVerifier
 {
     private const decimal NumericTolerance = 0.0001m;
+    private readonly IReadOnlyList<IVerificationRule> _rules;
+    private readonly ILogger<FactVerifier> _logger;
+
+    public FactVerifier()
+        : this([], NullLogger<FactVerifier>.Instance)
+    {
+    }
+
+    public FactVerifier(IEnumerable<IVerificationRule> rules)
+        : this(rules, NullLogger<FactVerifier>.Instance)
+    {
+    }
+
+    public FactVerifier(IEnumerable<IVerificationRule> rules, ILogger<FactVerifier> logger)
+    {
+        _rules = rules.ToList();
+        _logger = logger;
+    }
+
+    public async Task<VerificationResult> VerifyAsync(
+        FunctionCallResult result,
+        VerificationContext context,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        IVerificationRule? rule = _rules.FirstOrDefault(candidate => candidate.Supports(context.ToolName));
+        if (rule is null)
+        {
+            return new VerificationResult
+            {
+                Status = VerificationStatus.Unverified,
+                Summary = "No approved verification rule is available for this tool result.",
+                ErrorCode = "VERIFICATION_RULE_NOT_FOUND"
+            };
+        }
+
+        try
+        {
+            return await rule.VerifyAsync(result, context, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Verification query failed for tool {ToolName} with correlation {CorrelationId}.",
+                context.ToolName,
+                context.CorrelationId);
+            return new VerificationResult
+            {
+                Status = VerificationStatus.Unverified,
+                Summary = "The verification query could not be completed.",
+                ErrorCode = "VERIFICATION_QUERY_FAILED"
+            };
+        }
+    }
 
     public VerificationResult Verify(FunctionCallResult result)
     {

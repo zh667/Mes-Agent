@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using MesCopilot.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -28,7 +29,9 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
             new Claim(ClaimTypes.NameIdentifier, DefaultUserId),
             new Claim(ClaimTypes.Email, DefaultEmail),
             new Claim(ClaimTypes.Name, "Test User"),
-            new Claim(ClaimTypes.Role, DefaultRole)
+            new Claim(
+                MesCopilotClaimTypes.PlatformAdmin,
+                Request.Headers["X-Test-Platform-Admin"].SingleOrDefault() ?? bool.FalseString.ToLowerInvariant())
         ];
 
         ClaimsIdentity identity = new(claims, AuthenticationScheme);

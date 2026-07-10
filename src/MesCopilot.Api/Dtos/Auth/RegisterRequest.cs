@@ -16,5 +16,4 @@ public class RegisterRequest
     [MaxLength(100)]
     public string DisplayName { get; set; } = string.Empty;
 
-    public string Role { get; set; } = "Operator";
 }

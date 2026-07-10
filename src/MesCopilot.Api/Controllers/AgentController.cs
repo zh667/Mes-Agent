@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -9,8 +10,11 @@ using MesCopilot.Agent.Plugins.QualityAgentPlugin;
 using MesCopilot.Agent.Verification;
 using MesCopilot.Application.Dtos;
 using MesCopilot.Api.Dtos.Agent;
+using MesCopilot.Api.Errors;
 using MesCopilot.Application.Services;
+using MesCopilot.Application.Services.Auditing;
 using MesCopilot.Domain.Enums;
+using MesCopilot.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +33,10 @@ public class AgentController : ControllerBase
     private readonly QualityAgentPlugin _qualityAgent;
     private readonly OeeAgentPlugin _oeeAgent;
     private readonly KnowledgeAgentPlugin _knowledgeAgent;
+    private readonly IAgentAuditService _agentAuditService;
+    private readonly ITenantContext _tenantContext;
+    private readonly ApiProblemFactory _problems;
+    private readonly ILogger<AgentController> _logger;
 
     public AgentController(
         IConversationService conversationService,
@@ -36,7 +44,11 @@ public class AgentController : ControllerBase
         ProductionAgentPlugin productionAgent,
         QualityAgentPlugin qualityAgent,
         OeeAgentPlugin oeeAgent,
-        KnowledgeAgentPlugin knowledgeAgent)
+        KnowledgeAgentPlugin knowledgeAgent,
+        IAgentAuditService agentAuditService,
+        ITenantContext tenantContext,
+        ApiProblemFactory problems,
+        ILogger<AgentController> logger)
     {
         _conversationService = conversationService;
         _factVerifier = factVerifier;
@@ -44,14 +56,23 @@ public class AgentController : ControllerBase
         _qualityAgent = qualityAgent;
         _oeeAgent = oeeAgent;
         _knowledgeAgent = knowledgeAgent;
+        _agentAuditService = agentAuditService;
+        _tenantContext = tenantContext;
+        _problems = problems;
+        _logger = logger;
     }
 
     [HttpPost("chat")]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Chat(ChatRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Message))
         {
-            return BadRequest(new { error = "Message is required." });
+            return BadRequest(_problems.Create(
+                StatusCodes.Status400BadRequest,
+                "MESSAGE_REQUIRED",
+                "ValidationTitle",
+                "MessageRequired"));
         }
 
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -70,12 +91,38 @@ public class AgentController : ControllerBase
         Response.Headers.CacheControl = "no-cache";
         Response.Headers.Connection = "keep-alive";
 
+        long started = Stopwatch.GetTimestamp();
+        string auditStatus = "Failed";
+        string? auditToolName = null;
+        bool? auditVerified = null;
+        IReadOnlyList<string>? auditDiscrepancies = null;
+
         try
         {
             await WriteEventAsync(new SseEvent("thinking", "Selecting MES tool"), cancellationToken);
 
             AgentToolExecution execution = await ExecuteToolAsync(request, cancellationToken);
-            VerificationResult verification = _factVerifier.Verify(execution.Result);
+            DateTime dayStart = DateTime.UtcNow.Date;
+            VerificationContext verificationContext = new(
+                _tenantContext.TenantId ?? throw new InvalidOperationException("Tenant context is required."),
+                userId,
+                request.Mode,
+                execution.ToolName,
+                dayStart,
+                dayStart.AddDays(1),
+                HttpContext.TraceIdentifier);
+            VerificationResult verification = await _factVerifier.VerifyAsync(
+                execution.Result,
+                verificationContext,
+                cancellationToken);
+            VerificationResultDto verificationDto = VerificationResultDto.FromDomain(verification);
+            auditToolName = execution.ToolName;
+            auditVerified = verification.IsVerified;
+            auditDiscrepancies = verification.Discrepancies
+                .Select(item => item.Field)
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
 
             await WriteEventAsync(new SseEvent("tool_result", Data: new
             {
@@ -84,6 +131,7 @@ public class AgentController : ControllerBase
                 verified = verification.IsVerified,
                 discrepancies = verification.Discrepancies
             }), cancellationToken);
+            await WriteEventAsync(new SseEvent("verification", Data: verificationDto), cancellationToken);
 
             foreach (string token in ChunkText(execution.Result.Explanation, 24))
             {
@@ -95,22 +143,55 @@ public class AgentController : ControllerBase
                 conversationId.Value,
                 MessageRole.Assistant,
                 execution.Result.Explanation,
-                JsonSerializer.Serialize(execution.Result.Data, JsonOptions));
+                JsonSerializer.Serialize(new
+                {
+                    tool = execution.ToolName,
+                    data = execution.Result.Data
+                }, JsonOptions),
+                JsonSerializer.Serialize(verificationDto, JsonOptions),
+                verificationSchemaVersion: 1);
 
             await WriteEventAsync(new SseEvent("done"), cancellationToken);
+            auditStatus = "Completed";
         }
         catch (OperationCanceledException)
         {
+            auditStatus = "Canceled";
             throw;
         }
-        catch (Exception)
+        catch (Exception exception)
         {
+            auditStatus = "Failed";
+            _logger.LogError(exception, "Agent execution failed for conversation {ConversationId}.", conversationId);
             if (cancellationToken.IsCancellationRequested)
             {
                 throw new OperationCanceledException(cancellationToken);
             }
 
-            await WriteEventAsync(new SseEvent("error", "Agent processing failed."), cancellationToken);
+            await WriteEventAsync(
+                new SseEvent("error", _problems.GetMessage("AgentProcessingFailed")),
+                cancellationToken);
+        }
+        finally
+        {
+            try
+            {
+                await _agentAuditService.RecordAsync(new AgentAuditRecord(
+                    userId,
+                    conversationId,
+                    request.Mode,
+                    auditStatus,
+                    request.Message,
+                    auditToolName,
+                    auditVerified,
+                    auditDiscrepancies,
+                    (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+                    HttpContext.TraceIdentifier), CancellationToken.None);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Failed to persist agent audit for conversation {ConversationId}.", conversationId);
+            }
         }
 
         return new EmptyResult();
@@ -131,7 +212,7 @@ public class AgentController : ControllerBase
 
     [HttpGet("conversations/search")]
     public async Task<ActionResult<IReadOnlyList<ConversationSearchResultDto>>> SearchConversations(
-        [FromQuery] string q,
+        [FromQuery] string? q,
         [FromQuery] int skip = 0,
         [FromQuery] int take = 20)
     {
@@ -143,7 +224,11 @@ public class AgentController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(q))
         {
-            return BadRequest(new { error = "Search query is required." });
+            return BadRequest(_problems.Create(
+                StatusCodes.Status400BadRequest,
+                "SEARCH_QUERY_REQUIRED",
+                "ValidationTitle",
+                "SearchQueryRequired"));
         }
 
         var results = await _conversationService.SearchConversationsAsync(q, userId, skip, take);

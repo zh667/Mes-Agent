@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Production;
 /// <summary>
 /// 工序定义。
 /// </summary>
-public class ProcessStep
+public class ProcessStep : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

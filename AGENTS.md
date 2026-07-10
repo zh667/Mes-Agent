@@ -59,6 +59,10 @@ mes-agent/
    adding new abstractions.
 7. For non-trivial API, data model, Agent tool, or UI changes, identify edge
    cases before implementation.
+8. All user-visible frontend copy, including accessible names, empty states,
+   validation feedback, and status labels, must come from the `en-US` and
+   `zh-CN` message catalogs. Add both translations in the same change; do not
+   use hardcoded UI text or a one-locale fallback.
 
 ## Command Guide
 
@@ -107,3 +111,5 @@ Before finishing a code task:
    churn, and secret-like values.
 3. Summarize in Chinese: what changed, how it was verified, and remaining risk.
 4. If a commit is requested, propose a Conventional Commit message first.
+5. For frontend changes, run `pnpm check:i18n` and confirm both locale catalogs
+   have matching, non-empty keys and no unapproved hardcoded visible JSX text.

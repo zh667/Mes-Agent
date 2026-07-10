@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Knowledge;
 /// <summary>
 /// 文档切片。
 /// </summary>
-public class DocumentChunk
+public class DocumentChunk : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

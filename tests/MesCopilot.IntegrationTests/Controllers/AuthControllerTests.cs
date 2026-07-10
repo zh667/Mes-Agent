@@ -27,8 +27,7 @@ public class AuthControllerTests : IClassFixture<AuthApiFactory>
         {
             Email = $"register-{Guid.NewGuid():N}@example.com",
             Password = "Test123!",
-            DisplayName = "Register User",
-            Role = "Operator"
+            DisplayName = "Register User"
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", request);
@@ -39,7 +38,8 @@ public class AuthControllerTests : IClassFixture<AuthApiFactory>
         Assert.False(string.IsNullOrWhiteSpace(auth.AccessToken));
         Assert.False(string.IsNullOrWhiteSpace(auth.RefreshToken));
         Assert.Equal(request.Email, auth.User.Email);
-        Assert.Equal("Operator", auth.User.Role);
+        Assert.False(auth.User.IsPlatformAdmin);
+        Assert.Equal("Operator", Assert.Single(auth.User.Tenants).Role);
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class AuthControllerTests : IClassFixture<AuthApiFactory>
     [Fact]
     public async Task Me_WithValidToken_ReturnsCurrentUser()
     {
-        AuthResponse auth = await RegisterAsync("Current User", role: "Admin");
+        AuthResponse auth = await RegisterAsync("Current User");
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.AccessToken);
 
         HttpResponseMessage response = await _client.GetAsync("/api/auth/me");
@@ -194,7 +194,7 @@ public class AuthControllerTests : IClassFixture<AuthApiFactory>
         UserInfo? user = await response.Content.ReadFromJsonAsync<UserInfo>();
         Assert.NotNull(user);
         Assert.Equal(auth.User.Email, user.Email);
-        Assert.Equal("Admin", user.Role);
+        Assert.Equal("Operator", Assert.Single(user.Tenants).Role);
     }
 
     [Fact]
@@ -233,14 +233,13 @@ public class AuthControllerTests : IClassFixture<AuthApiFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    private async Task<AuthResponse> RegisterAsync(string displayName, string role = "Operator")
+    private async Task<AuthResponse> RegisterAsync(string displayName)
     {
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
         {
             Email = $"{displayName.Replace(" ", string.Empty).ToLowerInvariant()}-{Guid.NewGuid():N}@example.com",
             Password = "Test123!",
-            DisplayName = displayName,
-            Role = role
+            DisplayName = displayName
         });
 
         response.EnsureSuccessStatusCode();
@@ -248,14 +247,13 @@ public class AuthControllerTests : IClassFixture<AuthApiFactory>
         return auth ?? throw new InvalidOperationException("Auth response was empty.");
     }
 
-    private static async Task<AuthResponse> RegisterAsync(HttpClient client, string displayName, string role = "Operator")
+    private static async Task<AuthResponse> RegisterAsync(HttpClient client, string displayName)
     {
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/auth/register", new RegisterRequest
         {
             Email = $"{displayName.Replace(" ", string.Empty).ToLowerInvariant()}-{Guid.NewGuid():N}@example.com",
             Password = "Test123!",
-            DisplayName = displayName,
-            Role = role
+            DisplayName = displayName
         });
 
         response.EnsureSuccessStatusCode();

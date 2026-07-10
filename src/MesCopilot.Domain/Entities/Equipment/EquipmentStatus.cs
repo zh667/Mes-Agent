@@ -5,8 +5,10 @@ namespace MesCopilot.Domain.Entities.Equipment;
 /// <summary>
 /// 设备状态记录。
 /// </summary>
-public class EquipmentStatus
+public class EquipmentStatus : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>

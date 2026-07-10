@@ -3,8 +3,10 @@ namespace MesCopilot.Domain.Entities.Equipment;
 /// <summary>
 /// 停机记录。
 /// </summary>
-public class DowntimeRecord
+public class DowntimeRecord : MesCopilot.Domain.Common.ITenantEntity
 {
+    public string TenantId { get; set; } = string.Empty;
+
     public int Id { get; set; }
 
     /// <summary>
