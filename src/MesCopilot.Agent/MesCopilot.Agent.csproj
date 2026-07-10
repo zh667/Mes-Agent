@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BotSharp.Abstraction" Version="1.0.1" />
-    <PackageReference Include="BotSharp.Core" Version="1.0.0" />
+    <PackageReference Include="BotSharp.Abstraction" Version="5.2.0" />
+    <PackageReference Include="BotSharp.Core" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup>
