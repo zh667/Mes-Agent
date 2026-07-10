@@ -17,5 +17,16 @@ public interface IKnowledgeService
         int topK = 5,
         double similarityThreshold = 0.7);
 
+    Task<DocumentVersionDto> UploadNewVersionAsync(
+        int documentId,
+        Stream fileStream,
+        string fileName,
+        string changeNote,
+        string uploadedById);
+
+    Task<IReadOnlyList<DocumentVersionDto>> GetVersionHistoryAsync(int documentId);
+
+    Task RevertToVersionAsync(int documentId, int versionId);
+
     Task<bool> DeleteAsync(int id);
 }

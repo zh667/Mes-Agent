@@ -9,8 +9,42 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ChatInterface } from "@/components/agent/chat-interface";
 
+const agentStreamMock = vi.hoisted(() => ({
+  streamChat: vi.fn(),
+  stopStreaming: vi.fn(),
+  isStreaming: false,
+  options: undefined as
+    | {
+        onEvent?: (event: {
+          type: "thinking" | "token" | "tool_result" | "done" | "error";
+          content?: string | null;
+          data?: unknown;
+        }) => void;
+        onComplete?: () => void;
+        onError?: (error: Error) => void;
+      }
+    | undefined,
+}));
+
+vi.mock("@/lib/hooks/use-agent-stream", () => ({
+  useAgentStream: (
+    options: typeof agentStreamMock.options,
+  ) => {
+    agentStreamMock.options = options;
+    return {
+      streamChat: agentStreamMock.streamChat,
+      stopStreaming: agentStreamMock.stopStreaming,
+      isStreaming: agentStreamMock.isStreaming,
+    };
+  },
+}));
+
 afterEach(() => {
   vi.useRealTimers();
+  agentStreamMock.streamChat.mockReset();
+  agentStreamMock.stopStreaming.mockReset();
+  agentStreamMock.isStreaming = false;
+  agentStreamMock.options = undefined;
 });
 
 describe("ChatInterface", () => {
@@ -54,7 +88,7 @@ describe("ChatInterface", () => {
     expect(within(executionDetails!).getByText("142 ms")).toBeDefined();
   });
 
-  it("adds a user message and typing indicator after sending a prompt", () => {
+  it("sends a prompt through the streaming hook", () => {
     render(<ChatInterface />);
 
     fireEvent.change(
@@ -70,11 +104,14 @@ describe("ChatInterface", () => {
     expect(
       within(conversation).getByText("Which work orders are delayed today?"),
     ).toBeDefined();
-    expect(screen.getByText("Agent is checking MES signals")).toBeDefined();
+    expect(agentStreamMock.streamChat).toHaveBeenCalledWith({
+      mode: 0,
+      message: "Which work orders are delayed today?",
+      debugMode: false,
+    });
   });
 
-  it("replaces the typing indicator with an agent response and result data", async () => {
-    vi.useFakeTimers();
+  it("renders streamed thinking, token, and structured result events", async () => {
     render(<ChatInterface />);
 
     fireEvent.change(
@@ -85,17 +122,46 @@ describe("ChatInterface", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Send message" }));
 
+    expect(agentStreamMock.options).toBeDefined();
+
+    await act(async () => {
+      agentStreamMock.options?.onEvent?.({
+        type: "thinking",
+        content: "Selecting MES tool",
+      });
+    });
+
     expect(screen.getByText("Agent is checking MES signals")).toBeDefined();
 
     await act(async () => {
-      vi.advanceTimersByTime(650);
+      agentStreamMock.options?.onEvent?.({
+        type: "tool_result",
+        data: {
+          tool: "AnalyzeDelayedOrders",
+          data: {
+            workOrders: [
+              {
+                code: "WO-20260709-027",
+                productName: "Drive Motor",
+                progress: 0.58,
+                delayReason: "Line 2 alarm recovery",
+              },
+            ],
+          },
+        },
+      });
+      agentStreamMock.options?.onEvent?.({
+        type: "token",
+        content: "I found 1 delayed work order.",
+      });
+      agentStreamMock.options?.onComplete?.();
     });
 
     const conversation = screen.getByLabelText("Conversation history");
 
     expect(screen.queryByText("Agent is checking MES signals")).toBeNull();
     expect(
-      within(conversation).getByText(/I found 2 delayed work orders/i),
+      within(conversation).getByText(/I found 1 delayed work order/i),
     ).toBeDefined();
     expect(screen.getByText("WO-20260709-027")).toBeDefined();
   });

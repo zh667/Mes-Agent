@@ -15,4 +15,10 @@
     <ProjectReference Include="..\MesCopilot.Application\MesCopilot.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Prompts\Templates\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

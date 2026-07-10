@@ -212,6 +212,233 @@ public class KnowledgeServiceTests
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SearchSimilarAsync("alarm", topK: 101));
     }
 
+    [Fact]
+    public async Task UploadNewVersionAsync_CreatesNextVersionAndDeactivatesPrevious()
+    {
+        await using MesDbContext context = CreateContext();
+        var service = new KnowledgeService(context);
+        DocumentDto document = await service.CreateDocumentAsync(new CreateDocumentRequest(
+            "SOP A102",
+            "a102-v1.pdf",
+            "/docs/a102-v1.pdf",
+            DocumentType.Sop,
+            512,
+            "application/pdf",
+            "Alarm handling"));
+        context.DocumentVersions.Add(new DocumentVersion
+        {
+            DocumentId = document.Id,
+            VersionNumber = 1,
+            FileName = "a102-v1.pdf",
+            FilePath = "/docs/a102-v1.pdf",
+            FileSize = 512,
+            UploadedById = "user-1",
+            UploadedAt = DateTime.UtcNow.AddDays(-1),
+            ChangeNote = "Initial upload",
+            IsActive = true
+        });
+        await context.SaveChangesAsync();
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("version 2 content"));
+
+        DocumentVersionDto version = await service.UploadNewVersionAsync(
+            document.Id,
+            stream,
+            "a102-v2.pdf",
+            "Add reset procedure",
+            "user-2");
+
+        Assert.Equal(2, version.VersionNumber);
+        Assert.Equal("a102-v2.pdf", version.FileName);
+        Assert.True(version.IsActive);
+        Assert.Equal(Encoding.UTF8.GetByteCount("version 2 content"), version.FileSizeBytes);
+
+        DocumentVersion oldVersion = await context.DocumentVersions.SingleAsync(item => item.DocumentId == document.Id && item.VersionNumber == 1);
+        Assert.False(oldVersion.IsActive);
+
+        Document updatedDocument = await context.Documents.SingleAsync(item => item.Id == document.Id);
+        Assert.Equal("a102-v2.pdf", updatedDocument.FileName);
+        Assert.Equal("completed", updatedDocument.VectorizationStatus);
+    }
+
+    [Fact]
+    public async Task UploadNewVersionAsync_PersistsVersionFileAtRecordedPath()
+    {
+        await using MesDbContext context = CreateContext();
+        var service = new KnowledgeService(context);
+        DocumentDto document = await service.CreateDocumentAsync(new CreateDocumentRequest(
+            "SOP A102",
+            "a102-v1.pdf",
+            "/docs/a102-v1.pdf",
+            DocumentType.Sop,
+            512,
+            "application/pdf",
+            "Alarm handling"));
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("version 2 content"));
+
+        DocumentVersionDto version = await service.UploadNewVersionAsync(
+            document.Id,
+            stream,
+            "a102-v2.pdf",
+            "Persist file",
+            "user-2");
+
+        DocumentVersion storedVersion = await context.DocumentVersions.SingleAsync(item => item.Id == version.Id);
+        try
+        {
+            Assert.True(File.Exists(storedVersion.FilePath), $"Expected version file to exist at {storedVersion.FilePath}.");
+            Assert.Equal("version 2 content", await File.ReadAllTextAsync(storedVersion.FilePath));
+        }
+        finally
+        {
+            string? directory = Path.GetDirectoryName(storedVersion.FilePath);
+            if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task UploadNewVersionAsync_WithParsers_ReplacesExistingChunks()
+    {
+        await using MesDbContext context = CreateContext();
+        var parser = new FakeDocumentParser(new ParsedDocument(
+            "Updated alarm reset procedure",
+            [new ParsedDocumentSection(null, "Reset", "Updated alarm reset procedure")]));
+        var vectorStore = new PgVectorStore(context, new FakeEmbeddingClient([0.3f, 0.4f]));
+        var service = new KnowledgeService(context, [parser], new TextChunker(), vectorStore);
+        DocumentDto document = await service.CreateDocumentAsync(new CreateDocumentRequest(
+            "SOP A102",
+            "a102-v1.pdf",
+            "/docs/a102-v1.pdf",
+            DocumentType.Sop,
+            512,
+            "application/pdf",
+            "Alarm handling"));
+        context.DocumentChunks.Add(new DocumentChunk
+        {
+            DocumentId = document.Id,
+            Sequence = 1,
+            Content = "Old alarm procedure",
+            TokenCount = 3,
+            Vector = "[0.1,0.2]",
+            CreatedAt = DateTime.UtcNow.AddDays(-1)
+        });
+        await context.SaveChangesAsync();
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("version 2 content"));
+
+        await service.UploadNewVersionAsync(
+            document.Id,
+            stream,
+            "a102-v2.pdf",
+            "Replace procedure",
+            "user-2");
+
+        DocumentChunk chunk = await context.DocumentChunks.SingleAsync(item => item.DocumentId == document.Id);
+        Assert.Equal("Updated alarm reset procedure", chunk.Content);
+        Assert.Equal("[0.3,0.4]", chunk.Vector);
+        Assert.Equal(1, chunk.Sequence);
+    }
+
+    [Fact]
+    public async Task UploadNewVersionAsync_WhenVectorizationFails_CreatesVersionAndMarksDocumentFailed()
+    {
+        await using MesDbContext context = CreateContext();
+        var parser = new FakeDocumentParser(new ParsedDocument(
+            "Updated alarm reset procedure",
+            [new ParsedDocumentSection(null, "Reset", "Updated alarm reset procedure")]));
+        var service = new KnowledgeService(context, [parser], new TextChunker(), new FakeVectorStore([]));
+        DocumentDto document = await service.CreateDocumentAsync(new CreateDocumentRequest(
+            "SOP A102",
+            "a102-v1.pdf",
+            "/docs/a102-v1.pdf",
+            DocumentType.Sop,
+            512,
+            "application/pdf",
+            "Alarm handling"));
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("version 2 content"));
+
+        DocumentVersionDto version = await service.UploadNewVersionAsync(
+            document.Id,
+            stream,
+            "a102-v2.pdf",
+            "Replace procedure",
+            "user-2");
+
+        Assert.Equal(1, version.VersionNumber);
+        Assert.Equal("failed", (await context.Documents.SingleAsync(item => item.Id == document.Id)).VectorizationStatus);
+        Assert.Empty(await context.DocumentChunks.Where(item => item.DocumentId == document.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task RevertToVersionAsync_ActivatesTargetVersionAndUpdatesDocument()
+    {
+        await using MesDbContext context = CreateContext();
+        var service = new KnowledgeService(context);
+        DocumentDto document = await service.CreateDocumentAsync(new CreateDocumentRequest(
+            "SOP A102",
+            "a102-v2.pdf",
+            "/docs/a102-v2.pdf",
+            DocumentType.Sop,
+            1024,
+            "application/pdf",
+            "Alarm handling"));
+        context.DocumentVersions.AddRange(
+            new DocumentVersion
+            {
+                DocumentId = document.Id,
+                VersionNumber = 1,
+                FileName = "a102-v1.pdf",
+                FilePath = "/docs/a102-v1.pdf",
+                FileSize = 512,
+                UploadedById = "user-1",
+                UploadedAt = DateTime.UtcNow.AddDays(-2),
+                ChangeNote = "Initial upload",
+                IsActive = false
+            },
+            new DocumentVersion
+            {
+                DocumentId = document.Id,
+                VersionNumber = 2,
+                FileName = "a102-v2.pdf",
+                FilePath = "/docs/a102-v2.pdf",
+                FileSize = 1024,
+                UploadedById = "user-2",
+                UploadedAt = DateTime.UtcNow.AddDays(-1),
+                ChangeNote = "Second upload",
+                IsActive = true
+            });
+        context.DocumentChunks.Add(new DocumentChunk
+        {
+            DocumentId = document.Id,
+            Sequence = 1,
+            Content = "Current version chunk",
+            TokenCount = 3,
+            Vector = "[0.1,0.2]",
+            CreatedAt = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+        int targetVersionId = await context.DocumentVersions
+            .Where(item => item.DocumentId == document.Id && item.VersionNumber == 1)
+            .Select(item => item.Id)
+            .SingleAsync();
+
+        await service.RevertToVersionAsync(document.Id, targetVersionId);
+
+        List<DocumentVersion> versions = await context.DocumentVersions
+            .Where(item => item.DocumentId == document.Id)
+            .OrderBy(item => item.VersionNumber)
+            .ToListAsync();
+        Assert.True(versions[0].IsActive);
+        Assert.False(versions[1].IsActive);
+
+        Document updatedDocument = await context.Documents.SingleAsync(item => item.Id == document.Id);
+        Assert.Equal("a102-v1.pdf", updatedDocument.FileName);
+        Assert.Equal("/docs/a102-v1.pdf", updatedDocument.FilePath);
+        Assert.Equal("pending", updatedDocument.VectorizationStatus);
+        Assert.Empty(await context.DocumentChunks.Where(item => item.DocumentId == document.Id).ToListAsync());
+    }
+
     private static MesDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<MesDbContext>()

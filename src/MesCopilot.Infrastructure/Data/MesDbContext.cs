@@ -1,14 +1,17 @@
 using MesCopilot.Domain.Entities.Equipment;
+using MesCopilot.Domain.Entities.Conversations;
+using MesCopilot.Domain.Entities.Identity;
 using MesCopilot.Domain.Entities.Knowledge;
 using MesCopilot.Domain.Entities.Products;
 using MesCopilot.Domain.Entities.Production;
 using MesCopilot.Domain.Entities.Quality;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using EquipmentEntity = MesCopilot.Domain.Entities.Equipment.Equipment;
 
 namespace MesCopilot.Infrastructure.Data;
 
-public class MesDbContext : DbContext
+public class MesDbContext : IdentityDbContext<AppUser>
 {
     public MesDbContext(DbContextOptions<MesDbContext> options)
         : base(options)
@@ -53,7 +56,13 @@ public class MesDbContext : DbContext
 
     public DbSet<Document> Documents => Set<Document>();
 
+    public DbSet<DocumentVersion> DocumentVersions => Set<DocumentVersion>();
+
     public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
+
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+
+    public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

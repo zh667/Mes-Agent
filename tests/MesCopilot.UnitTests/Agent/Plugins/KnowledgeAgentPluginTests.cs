@@ -232,6 +232,26 @@ public class KnowledgeAgentPluginTests
             return Task.FromResult(SearchResults);
         }
 
+        public Task<DocumentVersionDto> UploadNewVersionAsync(
+            int documentId,
+            Stream fileStream,
+            string fileName,
+            string changeNote,
+            string uploadedById)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyList<DocumentVersionDto>> GetVersionHistoryAsync(int documentId)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task RevertToVersionAsync(int documentId, int versionId)
+        {
+            throw new NotSupportedException();
+        }
+
         public Task<bool> DeleteAsync(int id)
         {
             throw new NotSupportedException();

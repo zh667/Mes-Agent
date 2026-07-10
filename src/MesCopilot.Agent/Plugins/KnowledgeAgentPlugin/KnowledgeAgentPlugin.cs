@@ -17,7 +17,7 @@ public class KnowledgeAgentPlugin
     {
         SearchDocumentsTool = new SearchDocumentsTool(
             knowledgeService,
-            new ContextualRagAnswerGenerator(),
+            new VerifiedRagAnswerGenerator(),
             responseCache);
         GetSopByCodeTool = new GetSopByCodeTool(knowledgeService);
     }

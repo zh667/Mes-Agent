@@ -21,6 +21,7 @@ coverage/
 .env
 .env.*
 !.env.example
+!web/.env.local.example
 appsettings.Development.json
 appsettings.*.local.json
 
@@ -28,3 +29,4 @@ appsettings.*.local.json
 *.log
 *.tmp
 *.temp
+uploads/
